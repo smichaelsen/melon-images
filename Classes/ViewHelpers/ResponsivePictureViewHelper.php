@@ -93,7 +93,7 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
 
     protected function getDpiBreakpointsFromTypoScript(): array
     {
-        return GeneralUtility::trimExplode(',', $this->getTypoScriptSettings()['dpiBreakpoints']);
+        return GeneralUtility::trimExplode(',', $this->getTypoScriptSettings()['pixelDensities']);
     }
 
     protected function getTypoScriptSettings(): array
@@ -102,7 +102,7 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         if (!is_array($typoScriptSettings)) {
             $configurationManager = GeneralUtility::makeInstance(ObjectManager::class)->get(ConfigurationManagerInterface::class);
             $typoscript = $configurationManager->getConfiguration(ConfigurationManagerInterface::CONFIGURATION_TYPE_FULL_TYPOSCRIPT);
-            $typoScriptSettings = $typoscript['lib.']['responsiveImages.'];
+            $typoScriptSettings = $typoscript['package.']['smichaelsen.']['melon-images.'];
         }
         return $typoScriptSettings;
     }
