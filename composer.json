@@ -1,6 +1,6 @@
 {
   "name": "smichaelsen/melon-images",
-  "description": "Responsive Images Management for TYPO3 7.6",
+  "description": "Responsive Images Management for TYPO3 8.7",
   "type": "typo3-cms-extension",
   "license": "GPL-3.0",
   "autoload": {
