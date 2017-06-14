@@ -34,14 +34,15 @@ class TcaUtility
      * ];
      *
      * @param array $cropVariants
+     * @param string $table
      */
-    public static function writeCropVariantsConfigurationToTca(array $cropVariants)
+    public static function writeCropVariantsConfigurationToTca(array $cropVariants, string $table = 'tt_content')
     {
-        foreach ($cropVariants as $cType => $fields) {
+        foreach ($cropVariants as $type => $fields) {
             foreach ($fields as $fieldName => $sizes) {
-                $GLOBALS['TCA']['tt_content']['types'][$cType]['columnsOverrides'][$fieldName]['config']['overrideChildTca']['columns']['crop']['config']['cropVariants'] = [];
+                $GLOBALS['TCA'][$table]['types'][$type]['columnsOverrides'][$fieldName]['config']['overrideChildTca']['columns']['crop']['config']['cropVariants'] = [];
                 foreach ($sizes as $size => $sizeConfig) {
-                    $GLOBALS['TCA']['tt_content']['types'][$cType]['columnsOverrides'][$fieldName]['config']['overrideChildTca']['columns']['crop']['config']['cropVariants'][$size] = [
+                    $GLOBALS['TCA'][$table]['types'][$type]['columnsOverrides'][$fieldName]['config']['overrideChildTca']['columns']['crop']['config']['cropVariants'][$size] = [
                         'title' => ucfirst($size),
                         'allowedAspectRatios' => [],
                     ];
@@ -52,16 +53,16 @@ class TcaUtility
                         } else {
                             $key = $aspectRatio;
                         }
-                        $GLOBALS['TCA']['tt_content']['types'][$cType]['columnsOverrides'][$fieldName]['config']['overrideChildTca']['columns']['crop']['config']['cropVariants'][$size]['allowedAspectRatios'][$key] = [
+                        $GLOBALS['TCA'][$table]['types'][$type]['columnsOverrides'][$fieldName]['config']['overrideChildTca']['columns']['crop']['config']['cropVariants'][$size]['allowedAspectRatios'][$key] = [
                             'title' => $resolutionX . ' x ' . $resolutionY,
                             'value' => $resolutionX / $resolutionY,
                         ];
                     }
                     if (is_array($sizeConfig['coverAreas'])) {
-                        $GLOBALS['TCA']['tt_content']['types'][$cType]['columnsOverrides'][$fieldName]['config']['overrideChildTca']['columns']['crop']['config']['cropVariants'][$size]['coverAreas'] = $sizeConfig['coverAreas'];
+                        $GLOBALS['TCA'][$table]['types'][$type]['columnsOverrides'][$fieldName]['config']['overrideChildTca']['columns']['crop']['config']['cropVariants'][$size]['coverAreas'] = $sizeConfig['coverAreas'];
                     }
                     if (is_array($sizeConfig['focusArea'])) {
-                        $GLOBALS['TCA']['tt_content']['types'][$cType]['columnsOverrides'][$fieldName]['config']['overrideChildTca']['columns']['crop']['config']['cropVariants'][$size]['focusArea'] = $sizeConfig['focusArea'];
+                        $GLOBALS['TCA'][$table]['types'][$type]['columnsOverrides'][$fieldName]['config']['overrideChildTca']['columns']['crop']['config']['cropVariants'][$size]['focusArea'] = $sizeConfig['focusArea'];
                     }
                 }
             }
