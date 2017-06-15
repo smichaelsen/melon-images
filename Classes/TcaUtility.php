@@ -41,13 +41,17 @@ class TcaUtility
         foreach ($cropVariants as $type => $fields) {
             foreach ($fields as $fieldName => $sizes) {
                 if ($type === '__default') {
-                    $fieldConfig =& $GLOBALS['TCA'][$table]['columns'][$fieldName]['config'];
+                    $fieldConfig =&
+                        $GLOBALS['TCA'][$table]['columns'][$fieldName]
+                        ['config']['overrideChildTca']['columns']['crop']['config'];
                 } else {
-                    $fieldConfig =& $GLOBALS['TCA'][$table]['types'][$type]['columnsOverrides'][$fieldName]['config'];
+                    $fieldConfig =&
+                        $GLOBALS['TCA'][$table]['types'][$type]['columnsOverrides'][$fieldName]
+                        ['config']['overrideChildTca']['columns']['crop']['config'];
                 }
-                $fieldConfig['overrideChildTca']['columns']['crop']['config']['cropVariants'] = [];
+                $fieldConfig['cropVariants'] = [];
                 foreach ($sizes as $size => $sizeConfig) {
-                    $fieldConfig['overrideChildTca']['columns']['crop']['config']['cropVariants'][$size] = [
+                    $fieldConfig['cropVariants'][$size] = [
                         'title' => ucfirst($size),
                         'allowedAspectRatios' => [],
                     ];
@@ -58,20 +62,19 @@ class TcaUtility
                         } else {
                             $key = $aspectRatio;
                         }
-                        $fieldConfig['overrideChildTca']['columns']['crop']['config']['cropVariants'][$size]['allowedAspectRatios'][$key] = [
+                        $fieldConfig['cropVariants'][$size]['allowedAspectRatios'][$key] = [
                             'title' => $resolutionX . ' x ' . $resolutionY,
                             'value' => $resolutionX / $resolutionY,
                         ];
                     }
                     if (is_array($sizeConfig['coverAreas'])) {
-                        $fieldConfig['overrideChildTca']['columns']['crop']['config']['cropVariants'][$size]['coverAreas'] = $sizeConfig['coverAreas'];
+                        $fieldConfig['cropVariants'][$size]['coverAreas'] = $sizeConfig['coverAreas'];
                     }
                     if (is_array($sizeConfig['focusArea'])) {
-                        $fieldConfig['overrideChildTca']['columns']['crop']['config']['cropVariants'][$size]['focusArea'] = $sizeConfig['focusArea'];
+                        $fieldConfig['cropVariants'][$size]['focusArea'] = $sizeConfig['focusArea'];
                     }
                 }
             }
         }
     }
-
 }

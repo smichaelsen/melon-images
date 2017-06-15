@@ -80,15 +80,24 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
                 (int) $lastTargetResolution[1]
             );
             $imgTitle = $fileReference->getTitle() ? ' title="' . $fileReference->getTitle() . '"' : '';
-            $sourceMarkups[] = '<img src="' . $defaultImageUri . '" alt="' . $fileReference->getAlternative() . '"' . $imgTitle . '>';
+            $sourceMarkups[] = sprintf(
+                '<img src="%s" alt="%s"%s>',
+                $defaultImageUri,
+                $fileReference->getAlternative(),
+                $imgTitle
+            );
         }
 
         $this->tag->setContent(join("\n", $sourceMarkups));
         return $this->tag->render();
     }
 
-    protected function processImage(FileReference $fileReference, int $width, int $height, ?Area $cropArea = null): string
-    {
+    protected function processImage(
+        FileReference $fileReference,
+        int $width,
+        int $height,
+        ?Area $cropArea = null
+    ): string {
         if ($cropArea instanceof Area && !$cropArea->isEmpty()) {
             $cropArea = $cropArea->makeAbsoluteBasedOnFile($fileReference);
         } else {
@@ -117,8 +126,11 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
     {
         static $typoScriptSettings;
         if (!is_array($typoScriptSettings)) {
-            $configurationManager = GeneralUtility::makeInstance(ObjectManager::class)->get(ConfigurationManagerInterface::class);
-            $typoscript = $configurationManager->getConfiguration(ConfigurationManagerInterface::CONFIGURATION_TYPE_FULL_TYPOSCRIPT);
+            $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
+            $configurationManager = $objectManager->get(ConfigurationManagerInterface::class);
+            $typoscript = $configurationManager->getConfiguration(
+                ConfigurationManagerInterface::CONFIGURATION_TYPE_FULL_TYPOSCRIPT
+            );
             $typoScriptSettings = $typoscript['package.']['smichaelsen.']['melon-images.'];
         }
         return $typoScriptSettings;
@@ -128,7 +140,10 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
     {
         $cropVariants = $this->getCropVariantsForFileReference($fileReference);
         if (!array_key_exists($breakpointName, $cropVariants)) {
-            throw new BreakpointNotAvailableException('FileReference isn\'t available in given breakpoint "' . $breakpointName . '"', 1497511626);
+            throw new BreakpointNotAvailableException(
+                'FileReference isn\'t available in given breakpoint "' . $breakpointName . '"',
+                1497511626
+            );
         }
         return explode('x', array_keys($cropVariants[$breakpointName]['allowedAspectRatios'])[0]);
     }
@@ -149,11 +164,13 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
             }
             $cropVariants = $fieldConfig['overrideChildTca']['columns']['crop']['config']['cropVariants'];
             if (!is_array($cropVariants)) {
-                throw new \Exception('There are no cropVariants defined for table: ' . $table . ' / type:' . ($type ?? '[no type]'), 1497512877);
+                throw new \Exception(
+                    'There are no cropVariants defined for table: ' . $table . ' / type:' . ($type ?? '[no type]'),
+                    1497512877
+                );
             }
             $fileReferenceToRecordTca[$fileReference->getUid()] = $cropVariants;
         }
         return $fileReferenceToRecordTca[$fileReference->getUid()];
     }
-
 }

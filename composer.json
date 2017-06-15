@@ -7,7 +7,7 @@
 			"Smichaelsen\\MelonImages\\": "Classes/"
 		}
 	},
-	"require": {
-		"typo3/cms-core": "8.7.*"
+	"require-dev": {
+		"squizlabs/php_codesniffer": "*"
 	}
 }
