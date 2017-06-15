@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Smichaelsen\MelonImages\ViewHelpers;
 
+use Smichaelsen\MelonImages\BreakpointNotAvailableException;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Imaging\ImageManipulation\Area;
 use TYPO3\CMS\Core\Imaging\ImageManipulation\CropVariantCollection;
@@ -46,8 +47,13 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         $dpiBreakpoints = $this->getDpiBreakpointsFromTypoScript();
         $i = 0;
         foreach ($breakpoints as $breakpointName => $breakpoint) {
+            $i++;
+            try {
+                $targetResolution = $this->getTargetResolution($fileReference, $breakpointName);
+            } catch (BreakpointNotAvailableException $e) {
+                continue;
+            }
             $cropArea = $cropVariantCollection->getCropArea($breakpointName);
-            $targetResolution = $this->getTargetResolution($fileReference, $breakpointName);
             $srcset = [];
             foreach ($dpiBreakpoints as $dpiBreakpoint) {
                 $imageUri = $this->processImage(
@@ -61,7 +67,7 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
             $sourceMarkups[] = '<source srcset="' . join(', ', $srcset) . '" media="' . $breakpoint . '">';
 
             // the last defined breakpoint will be used for the fallback image
-            if (++$i === count($breakpoints)) {
+            if ($i === count($breakpoints)) {
                 $defaultImageUri = $imageUri = $this->processImage(
                     $fileReference,
                     (int) $targetResolution[0],
@@ -110,6 +116,9 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
     protected function getTargetResolution(FileReference $fileReference, string $breakpointName): array
     {
         $cropVariants = $this->getCropVariantsForFileReference($fileReference);
+        if (!array_key_exists($breakpointName, $cropVariants)) {
+            throw new BreakpointNotAvailableException('FileReference isn\'t available in given breakpoint "' . $breakpointName . '"', 1497511626);
+        }
         return explode('x', array_keys($cropVariants[$breakpointName]['allowedAspectRatios'])[0]);
     }
 
