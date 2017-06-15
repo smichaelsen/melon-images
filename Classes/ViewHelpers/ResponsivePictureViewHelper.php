@@ -96,7 +96,7 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         FileReference $fileReference,
         int $width,
         int $height,
-        ?Area $cropArea = null
+        $cropArea = null
     ): string {
         if ($cropArea instanceof Area && !$cropArea->isEmpty()) {
             $cropArea = $cropArea->makeAbsoluteBasedOnFile($fileReference);
