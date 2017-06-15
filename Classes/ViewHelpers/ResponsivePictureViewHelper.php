@@ -46,6 +46,7 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         $breakpoints = $this->getBreakpointsFromTypoScript();
         $dpiBreakpoints = $this->getDpiBreakpointsFromTypoScript();
         $i = 0;
+        $lastTargetResolution = null;
         foreach ($breakpoints as $breakpointName => $breakpoint) {
             $i++;
             try {
@@ -53,6 +54,7 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
             } catch (BreakpointNotAvailableException $e) {
                 continue;
             }
+            $lastTargetResolution = $targetResolution;
             $cropArea = $cropVariantCollection->getCropArea($breakpointName);
             $srcset = [];
             foreach ($dpiBreakpoints as $dpiBreakpoint) {
@@ -64,29 +66,38 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
                 );
                 $srcset[] = $imageUri . ' ' . $dpiBreakpoint . 'x';
             }
-            $sourceMarkups[] = '<source srcset="' . join(', ', $srcset) . '" media="' . $breakpoint . '">';
-
-            // the last defined breakpoint will be used for the fallback image
-            if ($i === count($breakpoints)) {
-                $defaultImageUri = $imageUri = $this->processImage(
-                    $fileReference,
-                    (int) $targetResolution[0],
-                    (int) $targetResolution[1],
-                    $cropArea
-                );
-                $sourceMarkups[] = '<img src="' . $defaultImageUri . '" alt="' . $fileReference->getAlternative() . '">';
+            if (!empty($breakpoint)) {
+                $sourceMarkups[] = '<source srcset="' . join(', ', $srcset) . '" media="' . $breakpoint . '">';
+            } else {
+                $sourceMarkups[] = '<source srcset="' . join(', ', $srcset) . '">';
             }
         }
+        // the last defined breakpoint will be used for the fallback image
+        if (is_array($lastTargetResolution)) {
+            $defaultImageUri = $imageUri = $this->processImage(
+                $fileReference,
+                (int) $lastTargetResolution[0],
+                (int) $lastTargetResolution[1]
+            );
+            $imgTitle = $fileReference->getTitle() ? ' title="' . $fileReference->getTitle() . '"' : '';
+            $sourceMarkups[] = '<img src="' . $defaultImageUri . '" alt="' . $fileReference->getAlternative() . '"' . $imgTitle . '>';
+        }
+
         $this->tag->setContent(join("\n", $sourceMarkups));
         return $this->tag->render();
     }
 
-    protected function processImage(FileReference $fileReference, int $width, int $height, ?Area $cropArea): string
+    protected function processImage(FileReference $fileReference, int $width, int $height, ?Area $cropArea = null): string
     {
+        if ($cropArea instanceof Area && !$cropArea->isEmpty()) {
+            $cropArea = $cropArea->makeAbsoluteBasedOnFile($fileReference);
+        } else {
+            $cropArea = null;
+        }
         $processingInstructions = [
             'width' => $width,
             'height' => $height,
-            'crop' => $cropArea->isEmpty() ? null : $cropArea->makeAbsoluteBasedOnFile($fileReference),
+            'crop' => $cropArea,
         ];
         $processedImage = $this->imageService->applyProcessingInstructions($fileReference, $processingInstructions);
         return $this->imageService->getImageUri($processedImage, $this->arguments['absolute']);
@@ -133,6 +144,9 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
             $fieldName = $fileReference->getProperty('fieldname');
             $columnsOverrides = $GLOBALS['TCA'][$table]['types'][$type]['columnsOverrides'];
             $cropVariants = $columnsOverrides[$fieldName]['config']['overrideChildTca']['columns']['crop']['config']['cropVariants'];
+            if (!is_array($cropVariants)) {
+                throw new \Exception('There are no cropVariants defined for type ' . $type, 1497512877);
+            }
             $fileReferenceToRecordTca[$fileReference->getUid()] = $cropVariants;
         }
         return $fileReferenceToRecordTca[$fileReference->getUid()];
