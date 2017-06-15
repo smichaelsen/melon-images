@@ -72,7 +72,7 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
                 $sourceMarkups[] = '<source srcset="' . join(', ', $srcset) . '">';
             }
         }
-        // the last defined breakpoint will be used for the fallback image
+        // the last available breakpoint will be used for the fallback image
         if (is_array($lastTargetResolution)) {
             $defaultImageUri = $imageUri = $this->processImage(
                 $fileReference,
@@ -139,13 +139,17 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         if (!is_array($fileReferenceToRecordTca[$fileReference->getUid()])) {
             $table = $fileReference->getProperty('tablenames');
             $typeField = $GLOBALS['TCA'][$table]['ctrl']['type'];
-            $record = BackendUtility::getRecord($table, $fileReference->getProperty('uid_foreign'), $typeField);
-            $type = $record[$typeField];
             $fieldName = $fileReference->getProperty('fieldname');
-            $columnsOverrides = $GLOBALS['TCA'][$table]['types'][$type]['columnsOverrides'];
-            $cropVariants = $columnsOverrides[$fieldName]['config']['overrideChildTca']['columns']['crop']['config']['cropVariants'];
+            if (empty($typeField)) {
+                $fieldConfig = $GLOBALS['TCA'][$table]['columns'][$fieldName]['config'];
+            } else {
+                $record = BackendUtility::getRecord($table, $fileReference->getProperty('uid_foreign'), $typeField);
+                $type = $record[$typeField];
+                $fieldConfig = $GLOBALS['TCA'][$table]['types'][$type]['columnsOverrides'][$fieldName]['config'];
+            }
+            $cropVariants = $fieldConfig['overrideChildTca']['columns']['crop']['config']['cropVariants'];
             if (!is_array($cropVariants)) {
-                throw new \Exception('There are no cropVariants defined for type ' . $type, 1497512877);
+                throw new \Exception('There are no cropVariants defined for table: ' . $table . ' / type:' . ($type ?? '[no type]'), 1497512877);
             }
             $fileReferenceToRecordTca[$fileReference->getUid()] = $cropVariants;
         }
