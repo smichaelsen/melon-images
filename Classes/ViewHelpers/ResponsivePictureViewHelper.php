@@ -40,6 +40,9 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
     {
         /** @var FileReference $fileReference */
         $fileReference = $this->arguments['fileReference'];
+        if (!$fileReference instanceof FileReference) {
+            return '';
+        }
         $cropString = $fileReference->getProperty('crop');
         $cropVariantCollection = CropVariantCollection::create((string) $cropString);
         $sourceMarkups = [];
