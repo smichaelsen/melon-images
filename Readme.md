@@ -1,14 +1,14 @@
 # Melon Images
-**Responsive Images Management for TYPO3 8.7**
+**Responsive Images Management for TYPO3**
 
-This package uses the powerful new responsive image cropping capabilities of TYPO3 8.7 and provides easy frontend rendering.
+This package uses the powerful responsive image cropping capabilities of TYPO3 and provides easy frontend rendering.
 
 ![Image Cropping](doc/image-cropping.png?raw=true "Image Cropping")
 
 TYPO3 8.7 comes with the powerful feature of `cropVariant`s, which let's you define use cases for your image including `allowedAspectRatios` and optionally `coverAreas`.
 This package simplifies the configuration of this feature.
 
-## Usage:
+## Backend Configuration:
 
  This package provides the method `\Smichaelsen\MelonImages\TcaUtility::writeCropVariantsConfigurationToTca()`, which manipulates the TCA,
  so in your extension `Configuration/TCA/Overrides/tx_news_domain_model_news.php` is a good place if you want to define cropping for a
@@ -68,3 +68,11 @@ The fourth level holds a config array with following options:
 * **title**: A human readable title of the crop variant to be displayed to the backend user. Optional, by default the *identifier* is used with `ucfirst()`.
 * **aspectRatios**: Array of aspect ratios that are valid for this crop variant. An aspect ratio is a string in the form `width x height` (e.g. `16 x 9`). 
 * **coverAreas**: Array of cover areas that apply to this crop variant. A crop variant is configured as an array with the keys `x`, `y`, `width` and `height`. `x` and `y` set the position of the top left corner of a cover area. All values are relative values between 0 and 1.
+
+## Frontend Configuration
+
+*TypoScript, tbd ...*
+
+## Rendering
+
+*Render with the provided ViewHelper, tbd ...*
