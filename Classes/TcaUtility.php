@@ -50,7 +50,7 @@ class TcaUtility
                 $fieldConfig['cropVariants'] = [];
                 foreach ($sizes as $size => $sizeConfig) {
                     $fieldConfig['cropVariants'][$size] = [
-                        'title' => ucfirst($size),
+                        'title' => $sizeConfig['title'] ?: ucfirst($size),
                         'allowedAspectRatios' => [],
                     ];
                     foreach ($sizeConfig['aspectRatios'] as $aspectRatio) {
