@@ -24,19 +24,19 @@ This package simplifies the configuration of this feature.
                  'detail' => [
                      'title' => 'Detail Page',
                      'aspectRatios' => [
-                         '943x419',
+                         '943 x 419',
                      ],
                  ],
                  'teaser_featured' => [
                      'title' => 'Featured Teaser',
                      'aspectRatios' => [
-                         '748x420',
+                         '748 x 420',
                      ],
                  ],
                  'teaser' => [
                      'title' => 'Teaser',
                      'aspectRatios' => [
-                         '360x240',
+                         '360 x 240', // using '3 x 2' would have the same effect
                      ],
                      'coverAreas' => [
                          [
@@ -66,5 +66,5 @@ TypoScript so keep it without spaces or dots.
 The fourth level holds a config array with following options:
 
 * **title**: A human readable title of the crop variant to be displayed to the backend user. Optional, by default the *identifier* is used with `ucfirst()`.
-* **aspectRatios**: Array of aspect ratios that are valid for this crop variant. An aspect ratio is a string in the form `widthxheight` (e.g. `16x9`). 
+* **aspectRatios**: Array of aspect ratios that are valid for this crop variant. An aspect ratio is a string in the form `width x height` (e.g. `16 x 9`). 
 * **coverAreas**: Array of cover areas that apply to this crop variant. A crop variant is configured as an array with the keys `x`, `y`, `width` and `height`. `x` and `y` set the position of the top left corner of a cover area. All values are relative values between 0 and 1.

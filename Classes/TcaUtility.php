@@ -54,7 +54,7 @@ class TcaUtility
                         'allowedAspectRatios' => [],
                     ];
                     foreach ($sizeConfig['aspectRatios'] as $aspectRatio) {
-                        list($resolutionX, $resolutionY) = explode('x', $aspectRatio);
+                        list($resolutionX, $resolutionY) = \TYPO3\CMS\Core\Utility\GeneralUtility::intExplode('x', $aspectRatio, true, 2);
                         if (isset($sizeConfig['width'])) {
                             $key = $sizeConfig['width'] . 'x' . ($sizeConfig['width'] / $resolutionX) * $resolutionY;
                         } else {
