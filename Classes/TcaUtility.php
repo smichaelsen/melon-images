@@ -1,11 +1,9 @@
 <?php
 declare(strict_types=1);
-
 namespace Smichaelsen\MelonImages;
 
 class TcaUtility
 {
-
     /**
      * Example:
      * $cropVariants = [
@@ -20,12 +18,12 @@ class TcaUtility
      *             'height' => 0.8,
      *           ],
      *         ],
-     *         'resolutions' => [
+     *         'aspectRatios' => [
      *           '978x450',
      *         ],
      *       ],
      *       'mobile' => [               // breakpoint name as defined in TypoScript
-     *         'resolutions' => [
+     *         'aspectRatios' => [
      *           '356x338',
      *         ],
      *       ],
@@ -41,11 +39,11 @@ class TcaUtility
         foreach ($cropVariants as $type => $fields) {
             foreach ($fields as $fieldName => $sizes) {
                 if ($type === '__default') {
-                    $fieldConfig =&
+                    $fieldConfig = &
                         $GLOBALS['TCA'][$table]['columns'][$fieldName]
                         ['config']['overrideChildTca']['columns']['crop']['config'];
                 } else {
-                    $fieldConfig =&
+                    $fieldConfig = &
                         $GLOBALS['TCA'][$table]['types'][$type]['columnsOverrides'][$fieldName]
                         ['config']['overrideChildTca']['columns']['crop']['config'];
                 }

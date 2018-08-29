@@ -1,6 +1,5 @@
 <?php
 declare(strict_types=1);
-
 namespace Smichaelsen\MelonImages\ViewHelpers;
 
 use Smichaelsen\MelonImages\BreakpointNotAvailableException;
@@ -16,7 +15,6 @@ use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper;
 
 class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
 {
-
     protected $tagName = 'picture';
 
     /**
@@ -70,9 +68,9 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
                 $srcset[] = $imageUri . ' ' . $dpiBreakpoint . 'x';
             }
             if (!empty($breakpoint)) {
-                $sourceMarkups[] = '<source srcset="' . join(', ', $srcset) . '" media="' . $breakpoint . '">';
+                $sourceMarkups[] = '<source srcset="' . implode(', ', $srcset) . '" media="' . $breakpoint . '">';
             } else {
-                $sourceMarkups[] = '<source srcset="' . join(', ', $srcset) . '">';
+                $sourceMarkups[] = '<source srcset="' . implode(', ', $srcset) . '">';
             }
         }
         // the last available breakpoint will be used for the fallback image
@@ -91,7 +89,7 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
             );
         }
 
-        $this->tag->setContent(join("\n", $sourceMarkups));
+        $this->tag->setContent(implode("\n", $sourceMarkups));
         return $this->tag->render();
     }
 
