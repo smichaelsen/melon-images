@@ -1,13 +1,13 @@
 {
-	"name": "smichaelsen/melon-images",
-	"description": "Responsive Images Management for TYPO3 8.7",
-	"license": "GPL-3.0",
-	"autoload": {
-		"psr-4": {
-			"Smichaelsen\\MelonImages\\": "Classes/"
-		}
-	},
-	"require-dev": {
-		"squizlabs/php_codesniffer": "*"
-	}
+  "name": "smichaelsen/melon-images",
+  "description": "Responsive Images Management for TYPO3 8.7",
+  "license": "GPL-3.0",
+  "autoload": {
+    "psr-4": {
+      "Smichaelsen\\MelonImages\\": "Classes/"
+    }
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^2.12"
+  }
 }
