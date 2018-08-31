@@ -2,77 +2,79 @@
 declare(strict_types=1);
 namespace Smichaelsen\MelonImages;
 
+use TYPO3\CMS\Core\TypoScript\TypoScriptService;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Configuration\BackendConfigurationManager;
+use TYPO3\CMS\Extbase\Configuration\FrontendConfigurationManager;
+
 class TcaUtility
 {
-    /**
-     * Example:
-     * $cropVariants = [
-     *   'my-content-element' => [        // CType
-     *     'image' => [                   // field name
-     *       'desktop' => [               // breakpoint name as defined in TypoScript
-     *         'coverAreas' => [
-     *           [
-     *             'x' => 0.55,
-     *             'y' => 0.2,
-     *             'width' => 0.45,
-     *             'height' => 0.8,
-     *           ],
-     *         ],
-     *         'aspectRatios' => [
-     *           '978x450',
-     *         ],
-     *       ],
-     *       'mobile' => [               // breakpoint name as defined in TypoScript
-     *         'aspectRatios' => [
-     *           '356x338',
-     *         ],
-     *       ],
-     *     ],
-     *   ],
-     * ];
-     *
-     * @param array $cropVariants
-     * @param string $table
-     */
-    public static function writeCropVariantsConfigurationToTca(array $cropVariants, string $table = 'tt_content')
+    public static function registerCropVariantsTcaFromTypoScript()
     {
-        foreach ($cropVariants as $type => $fields) {
-            foreach ($fields as $fieldName => $sizes) {
-                if ($type === '__default') {
-                    $fieldConfig = &
-                        $GLOBALS['TCA'][$table]['columns'][$fieldName]
-                        ['config']['overrideChildTca']['columns']['crop']['config'];
-                } else {
-                    $fieldConfig = &
-                        $GLOBALS['TCA'][$table]['types'][$type]['columnsOverrides'][$fieldName]
-                        ['config']['overrideChildTca']['columns']['crop']['config'];
-                }
-                $fieldConfig['cropVariants'] = [];
-                foreach ($sizes as $size => $sizeConfig) {
-                    $fieldConfig['cropVariants'][$size] = [
-                        'title' => $sizeConfig['title'] ?: ucfirst($size),
-                        'allowedAspectRatios' => [],
-                    ];
-                    foreach ($sizeConfig['aspectRatios'] as $aspectRatio) {
-                        list($resolutionX, $resolutionY) = \TYPO3\CMS\Core\Utility\GeneralUtility::intExplode('x', $aspectRatio, true, 2);
-                        if (isset($sizeConfig['width'])) {
-                            $key = $sizeConfig['width'] . 'x' . ($sizeConfig['width'] / $resolutionX) * $resolutionY;
-                        } else {
-                            $key = $aspectRatio;
-                        }
-                        $fieldConfig['cropVariants'][$size]['allowedAspectRatios'][$key] = [
-                            'title' => $resolutionX . ' x ' . $resolutionY,
-                            'value' => $resolutionX / $resolutionY,
-                        ];
-                    }
-                    if (is_array($sizeConfig['coverAreas'])) {
-                        $fieldConfig['cropVariants'][$size]['coverAreas'] = $sizeConfig['coverAreas'];
-                    }
-                    if (is_array($sizeConfig['focusArea'])) {
-                        $fieldConfig['cropVariants'][$size]['focusArea'] = $sizeConfig['focusArea'];
+        $packageTypoScriptSettings = self::loadPackageTypoScriptSettings();
+        if (empty($packageTypoScriptSettings)) {
+            return;
+        }
+        foreach ($packageTypoScriptSettings['croppingConfiguration'] as $tableName => $tableConfiguration) {
+            foreach ($tableConfiguration as $type => $fields) {
+                foreach ($fields as $fieldName => $fieldConfig) {
+                    $cropVariantsTca = self::createCropVariantsTcaForField($fieldConfig);
+                    if ($type === '_all') {
+                        $GLOBALS['TCA'][$tableName]['columns'][$fieldName]['config']['overrideChildTca']['columns']['crop']['config']['cropVariants'] = $cropVariantsTca;
+                    } else {
+                        $GLOBALS['TCA'][$tableName]['types'][$type]['columnsOverrides'][$fieldName]['config']['overrideChildTca']['columns']['crop']['config']['cropVariants'] = $cropVariantsTca;
                     }
                 }
             }
         }
+    }
+
+    protected static function loadPackageTypoScriptSettings(): array
+    {
+        if (TYPO3_MODE === 'BE') {
+            $configurationManager = GeneralUtility::makeInstance(BackendConfigurationManager::class);
+            $typoScript = $configurationManager->getTypoScriptSetup();
+        } elseif (TYPO3_MODE === 'FE') {
+            $configurationManager = GeneralUtility::makeInstance(FrontendConfigurationManager::class);
+            $typoScript = $configurationManager->getTypoScriptSetup();
+        }
+        if (empty($typoScript['package.']['Smichaelsen\\MelonImages.'])) {
+            return [];
+        }
+        return GeneralUtility::makeInstance(TypoScriptService::class)->convertTypoScriptArrayToPlainArray(
+            $typoScript['package.']['Smichaelsen\\MelonImages.']
+        );
+    }
+
+    protected static function createCropVariantsTcaForField(array $fieldConfig)
+    {
+        $cropVariantsTca = [];
+        foreach ($fieldConfig['variants'] as $variantIdentifier => $variantConfig) {
+            $variantTitle = $variantConfig['title'] ?: ucfirst($variantIdentifier);
+            foreach ($variantConfig['sizes'] as $sizeIdentifier => $sizeConfig) {
+                if (count($variantConfig['sizes']) === 1) {
+                    $cropVariantTitle = $variantTitle;
+                } else {
+                    $cropVariantTitle = $sizeConfig['title'] ?: $variantTitle . ' ' . ucfirst($sizeIdentifier);
+                }
+                $cropVariantKey = $variantIdentifier . '__' . $sizeIdentifier;
+                $cropVariantsTca[$cropVariantKey] = [
+                    'title' => $cropVariantTitle,
+                    'allowedAspectRatios' => [
+                        $sizeConfig['aspectRatio']['x'] . ' x ' . $sizeConfig['aspectRatio']['y'] => [
+                            'title' => $sizeConfig['aspectRatio']['x'] . ' x ' . $sizeConfig['aspectRatio']['y'],
+                            'value' => $sizeConfig['aspectRatio']['x'] / $sizeConfig['aspectRatio']['y'],
+                        ],
+                    ],
+                ];
+                if (!empty($sizeConfig['coverAreas'])) {
+                    $cropVariantsTca[$cropVariantKey]['coverAreas'] = $sizeConfig['coverAreas'];
+                }
+                if (!empty($sizeConfig['focusArea'])) {
+                    $cropVariantsTca[$cropVariantKey]['focusArea'] = $sizeConfig['focusArea'];
+                }
+            }
+        }
+        return $cropVariantsTca;
     }
 }

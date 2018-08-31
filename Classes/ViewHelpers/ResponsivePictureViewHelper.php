@@ -2,13 +2,14 @@
 declare(strict_types=1);
 namespace Smichaelsen\MelonImages\ViewHelpers;
 
-use Smichaelsen\MelonImages\BreakpointNotAvailableException;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Imaging\ImageManipulation\Area;
 use TYPO3\CMS\Core\Imaging\ImageManipulation\CropVariantCollection;
 use TYPO3\CMS\Core\Resource\FileReference;
+use TYPO3\CMS\Core\TypoScript\TypoScriptService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
+use TYPO3\CMS\Extbase\Domain\Model\FileReference as ExtbaseFileReferenceModel;
 use TYPO3\CMS\Extbase\Object\ObjectManager;
 use TYPO3\CMS\Extbase\Service\ImageService;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper;
@@ -31,63 +32,69 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
     {
         parent::initializeArguments();
         $this->registerUniversalTagAttributes();
-        $this->registerArgument('fileReference', FileReference::class, 'File reference to render', true);
+        $this->registerArgument('fileReference', 'mixed', 'File reference to render', true);
+        $this->registerArgument('variant', 'string', 'Name of the image variant to use', true);
     }
 
     public function render(): string
     {
-        /** @var FileReference $fileReference */
         $fileReference = $this->arguments['fileReference'];
+        if ($fileReference instanceof ExtbaseFileReferenceModel) {
+            $fileReference = $fileReference->getOriginalResource();
+        }
         if (!$fileReference instanceof FileReference) {
             return '';
         }
-        $cropString = $fileReference->getProperty('crop');
-        $cropVariantCollection = CropVariantCollection::create((string) $cropString);
+
+        $variant = $this->arguments['variant'];
+
+        $cropConfiguration = json_decode((string)$fileReference->getProperty('crop'), true);
+        // filter for all crop configurations that match the chosen image variant
+        $matchingCropConfiguration = array_filter($cropConfiguration, function ($key) use ($variant) {
+            return strpos($key, $variant . '__') === 0;
+        }, ARRAY_FILTER_USE_KEY);
+        $cropVariants = CropVariantCollection::create(json_encode($matchingCropConfiguration));
+        $cropVariantIds = array_keys($matchingCropConfiguration);
+        unset($matchingCropConfiguration);
+
         $sourceMarkups = [];
-        $breakpoints = $this->getBreakpointsFromTypoScript();
-        $dpiBreakpoints = $this->getDpiBreakpointsFromTypoScript();
-        $i = 0;
-        $lastTargetResolution = null;
-        foreach ($breakpoints as $breakpointName => $breakpoint) {
-            $i++;
-            try {
-                $targetResolution = $this->getTargetResolution($fileReference, $breakpointName);
-            } catch (BreakpointNotAvailableException $e) {
-                continue;
-            }
-            $lastTargetResolution = $targetResolution;
-            $cropArea = $cropVariantCollection->getCropArea($breakpointName);
+        $pixelDensities = $this->getPixelDensitiesFromTypoScript();
+        foreach ($cropVariantIds as $cropVariantId) {
             $srcset = [];
-            foreach ($dpiBreakpoints as $dpiBreakpoint) {
+            $sizeConfiguration = $this->getSizeConfiguration($fileReference, $cropVariantId);
+
+            foreach ($pixelDensities as $pixelDensity) {
                 $imageUri = $this->processImage(
                     $fileReference,
-                    (int) ($targetResolution[0] * $dpiBreakpoint),
-                    (int) ($targetResolution[1] * $dpiBreakpoint),
-                    $cropArea
+                    (int)round(($sizeConfiguration['aspectRatio']['x'] * $pixelDensity)),
+                    (int)round(($sizeConfiguration['aspectRatio']['y'] * $pixelDensity)),
+                    $cropVariants->getCropArea($cropVariantId)
                 );
-                $srcset[] = $imageUri . ' ' . $dpiBreakpoint . 'x';
+                $srcset[] = $imageUri . ' ' . $pixelDensity . 'x';
             }
-            if (!empty($breakpoint)) {
-                $sourceMarkups[] = '<source srcset="' . implode(', ', $srcset) . '" media="' . $breakpoint . '">';
-            } else {
-                $sourceMarkups[] = '<source srcset="' . implode(', ', $srcset) . '">';
+
+            $mediaQuery = $this->getMediaQueryFromSizeConfig($sizeConfiguration);
+            if (!empty($mediaQuery)) {
+                $mediaQuery = ' media="' . $mediaQuery . '"';
             }
+            $sourceMarkups[] = '<source srcset="' . implode(', ', $srcset) . '"' . $mediaQuery . '>';
         }
-        // the last available breakpoint will be used for the fallback image
-        if (is_array($lastTargetResolution)) {
-            $defaultImageUri = $imageUri = $this->processImage(
-                $fileReference,
-                (int) $lastTargetResolution[0],
-                (int) $lastTargetResolution[1]
-            );
-            $imgTitle = $fileReference->getTitle() ? ' title="' . $fileReference->getTitle() . '"' : '';
-            $sourceMarkups[] = sprintf(
-                '<img src="%s" alt="%s"%s>',
-                $defaultImageUri,
-                $fileReference->getAlternative(),
-                $imgTitle
-            );
-        }
+
+        // the last crop variant is used as fallback <img>
+        $lastCropVariantId = end($cropVariantIds);
+        $sizeConfiguration = $this->getSizeConfiguration($fileReference, $lastCropVariantId);
+        $defaultImageUri = $imageUri = $this->processImage(
+            $fileReference,
+            (int)$sizeConfiguration['aspectRatio']['x'],
+            (int)$sizeConfiguration['aspectRatio']['y']
+        );
+        $imgTitle = $fileReference->getTitle() ? 'title="' . $fileReference->getTitle() . '"' : '';
+        $sourceMarkups[] = sprintf(
+            '<img src="%s" alt="%s" %s>',
+            $defaultImageUri,
+            $fileReference->getAlternative(),
+            $imgTitle
+        );
 
         $this->tag->setContent(implode("\n", $sourceMarkups));
         return $this->tag->render();
@@ -115,12 +122,12 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
 
     protected function getBreakpointsFromTypoScript(): array
     {
-        return $this->getTypoScriptSettings()['breakpoints.'];
+        return (array)$this->getTypoScriptSettings()['breakpoints'];
     }
 
-    protected function getDpiBreakpointsFromTypoScript(): array
+    protected function getPixelDensitiesFromTypoScript(): array
     {
-        return GeneralUtility::trimExplode(',', $this->getTypoScriptSettings()['pixelDensities']);
+        return GeneralUtility::trimExplode(',', (string)$this->getTypoScriptSettings()['pixelDensities'] ?? '1');
     }
 
     protected function getTypoScriptSettings(): array
@@ -132,46 +139,63 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
             $typoscript = $configurationManager->getConfiguration(
                 ConfigurationManagerInterface::CONFIGURATION_TYPE_FULL_TYPOSCRIPT
             );
-            $typoScriptSettings = $typoscript['package.']['smichaelsen.']['melon-images.'];
+            $typoScriptSettings = GeneralUtility::makeInstance(TypoScriptService::class)->convertTypoScriptArrayToPlainArray(
+                $typoscript['package.']['Smichaelsen\MelonImages.'] ?? []
+            );
         }
         return $typoScriptSettings;
     }
 
-    protected function getTargetResolution(FileReference $fileReference, string $breakpointName): array
+    protected function getSizeConfiguration(FileReference $fileReference, string $cropVariantId): array
     {
-        $cropVariants = $this->getCropVariantsForFileReference($fileReference);
-        if (!array_key_exists($breakpointName, $cropVariants)) {
-            throw new BreakpointNotAvailableException(
-                'FileReference isn\'t available in given breakpoint "' . $breakpointName . '"',
-                1497511626
-            );
-        }
-        return explode('x', array_keys($cropVariants[$breakpointName]['allowedAspectRatios'])[0]);
+        list($variantIdentifier, $sizeIdentifier) = explode('__', $cropVariantId);
+        return $this->getMelonImagesConfigForFileReference($fileReference)['variants'][$variantIdentifier]['sizes'][$sizeIdentifier];
     }
 
-    protected function getCropVariantsForFileReference(FileReference $fileReference): array
+    protected function getMediaQueryFromSizeConfig(array $sizeConfiguration): string
     {
-        static $fileReferenceToRecordTca = [];
-        if (!is_array($fileReferenceToRecordTca[$fileReference->getUid()])) {
-            $table = $fileReference->getProperty('tablenames');
-            $typeField = $GLOBALS['TCA'][$table]['ctrl']['type'];
-            $fieldName = $fileReference->getProperty('fieldname');
-            if (empty($typeField)) {
-                $fieldConfig = $GLOBALS['TCA'][$table]['columns'][$fieldName]['config'];
-            } else {
-                $record = BackendUtility::getRecord($table, $fileReference->getProperty('uid_foreign'), $typeField);
-                $type = $record[$typeField];
-                $fieldConfig = $GLOBALS['TCA'][$table]['types'][$type]['columnsOverrides'][$fieldName]['config'];
+        $breakpointsConfig = $this->getBreakpointsFromTypoScript();
+        $breakpoints = [];
+        foreach (GeneralUtility::trimExplode(',', $sizeConfiguration['breakpoints']) as $breakpointName) {
+            $constraints = [];
+            if ($breakpointsConfig[$breakpointName]['from']) {
+                $constraints[] = '(min-width: ' . $breakpointsConfig[$breakpointName]['from'] . 'px)';
             }
-            $cropVariants = $fieldConfig['overrideChildTca']['columns']['crop']['config']['cropVariants'];
-            if (!is_array($cropVariants)) {
-                throw new \Exception(
-                    'There are no cropVariants defined for table: ' . $table . ' / type:' . ($type ?? '[no type]'),
-                    1497512877
-                );
+            if ($breakpointsConfig[$breakpointName]['to']) {
+                $constraints[] = '(max-width: ' . $breakpointsConfig[$breakpointName]['to'] . 'px)';
             }
-            $fileReferenceToRecordTca[$fileReference->getUid()] = $cropVariants;
+            if (empty($constraints)) {
+                continue;
+            }
+            $breakpoints[] = implode(' and ', $constraints);
         }
-        return $fileReferenceToRecordTca[$fileReference->getUid()];
+        if (empty($breakpoints)) {
+            return '';
+        }
+        return implode(', ', $breakpoints);
+    }
+
+    protected function getMelonImagesConfigForFileReference(FileReference $fileReference): array
+    {
+        static $melonConfigPerFileReferenceUid = [];
+        if (!isset($melonConfigPerFileReferenceUid[$fileReference->getUid()])) {
+            $melonConfigPerFileReferenceUid[$fileReference->getUid()] = (function () use ($fileReference) {
+                $typoScriptSettings = $this->getTypoScriptSettings();
+                $table = $fileReference->getProperty('tablenames');
+                $tableSettings = $typoScriptSettings['croppingConfiguration'][$table];
+                unset($typoScriptSettings);
+                $fieldName = $fileReference->getProperty('fieldname');
+                $typeField = $GLOBALS['TCA'][$table]['ctrl']['type'];
+                if ($typeField) {
+                    $record = BackendUtility::getRecord($table, $fileReference->getProperty('uid_foreign'), $typeField);
+                    $type = $record[$typeField];
+                    if ($tableSettings[$type]) {
+                        return $tableSettings[$type][$fieldName];
+                    }
+                }
+                return $tableSettings['_all'][$fieldName];
+            })();
+        }
+        return $melonConfigPerFileReferenceUid[$fileReference->getUid()];
     }
 }
