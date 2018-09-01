@@ -88,12 +88,12 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
             (int)$sizeConfiguration['aspectRatio']['x'],
             (int)$sizeConfiguration['aspectRatio']['y']
         );
-        $imgTitle = $fileReference->getTitle() ? 'title="' . $fileReference->getTitle() . '"' : '';
+        $imgTitle = $fileReference->getTitle() ? 'title="' . htmlspecialchars($fileReference->getTitle()) . '"' : '';
         $sourceMarkups[] = sprintf(
             '<img src="%s" alt="%s" %s>',
             $defaultImageUri,
             $fileReference->getAlternative(),
-            $imgTitle
+            htmlspecialchars($imgTitle)
         );
 
         $this->tag->setContent(implode("\n", $sourceMarkups));
