@@ -7,12 +7,14 @@ use TYPO3\CMS\Core\Resource\FileReference;
 use TYPO3\CMS\Extbase\Domain\Model\FileReference as ExtbaseFileReferenceModel;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper;
 
-class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
+class CroppedImageViewHelper extends AbstractTagBasedViewHelper
 {
+
     protected $tagName = 'picture';
 
     /**
      * @var ImageDataProvider
+     *
      */
     protected $imageDataProvider;
 
@@ -42,24 +44,12 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         $variant = $this->arguments['variant'];
         $variantData = $this->imageDataProvider->getImageVariantData($fileReference, $variant);
 
-        $tagContent = '';
-        foreach ($variantData['sources'] as $source) {
-            $mediaQuery = $source['mediaQuery'];
-            if (!empty($mediaQuery)) {
-                $mediaQuery = ' media="' . $mediaQuery . '"';
-            }
-            $tagContent .= '<source srcset="' . implode(', ', $source['srcsets']) . '"' . $mediaQuery . '>' . "\n";
+        $this->tag->addAttribute('src', $variantData['fallbackImageSrc']);
+        $this->tag->addAttribute('alt', (string)$fileReference->getAlternative());
+        if ($fileReference->getTitle()) {
+            $this->tag->addAttribute('title', (string)$fileReference->getTitle());
         }
 
-        $title = $fileReference->getTitle() ? 'title="' . htmlspecialchars($fileReference->getTitle()) . '"' : '';
-        $tagContent .= sprintf(
-            '<img src="%s" alt="%s" %s>',
-            $variantData['fallbackImageSrc'],
-            htmlspecialchars((string)$fileReference->getAlternative()),
-            $title
-        );
-
-        $this->tag->setContent($tagContent);
         return $this->tag->render();
     }
 }

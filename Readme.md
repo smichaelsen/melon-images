@@ -84,6 +84,16 @@ package.Smichaelsen\MelonImages {
                 }
               }
             }
+            
+            square {
+              title = Square for Open Graph
+              sizes {
+                all {
+                  width = 512
+                  height = 512
+                }
+              }
+            }
           }
         }
       }
@@ -94,6 +104,8 @@ package.Smichaelsen\MelonImages {
 ```
 
 ## Rendering
+
+### Responsive Image
 
 To render the reponsive image with the correct cropping use the provided ViewHelper:
 
@@ -118,4 +130,32 @@ The rendering (with the above TypoScript config) looks something like this:
     <source srcset="fileadmin/_processed_/e/d/myimage_e9798f5526.jpg 1x, fileadmin/_processed_/e/d/myimage_23053285d0.jpg 2x" media="(max-width: 479px)">
     <img src="fileadmin/_processed_/e/d/myimage_712c5e4398.jpg" alt="">
 </picture>
+```
+
+### Cropped Image and cropped image url
+
+The rendering as responsive `<picture>` tag is not always desirable. You can also just apply the cropping and ignore the sizes and breakpoints.
+
+```
+<html
+    xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
+    xmlns:melon="http://typo3.org/ns/Smichaelsen/MelonImages/ViewHelpers"
+    xmlns:n="http://typo3.org/ns/GeorgRinger/News/ViewHelpers"
+    data-namespace-typo3-fluid="true"
+>
+
+<n:metaTag property="og:image" content="{melon:croppedImageUri(fileReference: newsItem.falMedia.0, variant: 'square')}" forceAbsoluteUrl="1" />
+
+<melon:croppedImage fileReference="{newsItem.falMedia.0}" variant="teaser"/>
+
+</html>
+
+```
+
+The rendering looks something like this:
+
+```
+<meta property="og:image" content="https://www.example.com/fileadmin/_processed_/e/d/myimage_e7a4c74e8b.jpg" />
+
+<img src="fileadmin/_processed_/e/d/myimage_712c5e4398.jpg" alt="">
 ```

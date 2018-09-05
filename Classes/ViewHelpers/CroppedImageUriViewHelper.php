@@ -5,14 +5,14 @@ namespace Smichaelsen\MelonImages\ViewHelpers;
 use Smichaelsen\MelonImages\Service\ImageDataProvider;
 use TYPO3\CMS\Core\Resource\FileReference;
 use TYPO3\CMS\Extbase\Domain\Model\FileReference as ExtbaseFileReferenceModel;
-use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper;
+use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractViewHelper;
 
-class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
+class CroppedImageUriViewHelper extends AbstractViewHelper
 {
-    protected $tagName = 'picture';
 
     /**
      * @var ImageDataProvider
+     *
      */
     protected $imageDataProvider;
 
@@ -24,7 +24,6 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
     public function initializeArguments()
     {
         parent::initializeArguments();
-        $this->registerUniversalTagAttributes();
         $this->registerArgument('fileReference', 'mixed', 'File reference to render', true);
         $this->registerArgument('variant', 'string', 'Name of the image variant to use', true);
     }
@@ -42,24 +41,7 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         $variant = $this->arguments['variant'];
         $variantData = $this->imageDataProvider->getImageVariantData($fileReference, $variant);
 
-        $tagContent = '';
-        foreach ($variantData['sources'] as $source) {
-            $mediaQuery = $source['mediaQuery'];
-            if (!empty($mediaQuery)) {
-                $mediaQuery = ' media="' . $mediaQuery . '"';
-            }
-            $tagContent .= '<source srcset="' . implode(', ', $source['srcsets']) . '"' . $mediaQuery . '>' . "\n";
-        }
-
-        $title = $fileReference->getTitle() ? 'title="' . htmlspecialchars($fileReference->getTitle()) . '"' : '';
-        $tagContent .= sprintf(
-            '<img src="%s" alt="%s" %s>',
-            $variantData['fallbackImageSrc'],
-            htmlspecialchars((string)$fileReference->getAlternative()),
-            $title
-        );
-
-        $this->tag->setContent($tagContent);
-        return $this->tag->render();
+        return $variantData['fallbackImageSrc'];
     }
+
 }
