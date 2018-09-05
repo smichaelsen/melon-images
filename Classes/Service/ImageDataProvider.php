@@ -72,7 +72,11 @@ class ImageDataProvider implements SingletonInterface
 
         return [
             'sources' => $sources,
-            'fallbackImageSrc' => $defaultImageUri,
+            'fallbackImage' => [
+                'src' => $defaultImageUri,
+                'width' => (int)$sizeConfiguration['width'],
+                'height' => (int)$sizeConfiguration['height'],
+            ]
         ];
     }
 

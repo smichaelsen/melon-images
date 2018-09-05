@@ -158,5 +158,5 @@ The rendering looks something like this:
 ```
 <meta property="og:image" content="https://www.example.com/fileadmin/_processed_/e/d/myimage_e7a4c74e8b.jpg" />
 
-<img src="fileadmin/_processed_/e/d/myimage_712c5e4398.jpg" alt="">
+<img src="fileadmin/_processed_/e/d/myimage_712c5e4398.jpg" width="480" height="420" alt="">
 ```

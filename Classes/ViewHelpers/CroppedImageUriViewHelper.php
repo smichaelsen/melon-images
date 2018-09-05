@@ -41,7 +41,7 @@ class CroppedImageUriViewHelper extends AbstractViewHelper
         $variant = $this->arguments['variant'];
         $variantData = $this->imageDataProvider->getImageVariantData($fileReference, $variant);
 
-        return $variantData['fallbackImageSrc'];
+        return $variantData['fallbackImage']['src'];
     }
 
 }

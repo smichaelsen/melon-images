@@ -54,7 +54,7 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         $title = $fileReference->getTitle() ? 'title="' . htmlspecialchars($fileReference->getTitle()) . '"' : '';
         $tagContent .= sprintf(
             '<img src="%s" alt="%s" %s>',
-            $variantData['fallbackImageSrc'],
+            $variantData['fallbackImage']['src'],
             htmlspecialchars((string)$fileReference->getAlternative()),
             $title
         );

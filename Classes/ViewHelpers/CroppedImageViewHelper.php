@@ -44,8 +44,10 @@ class CroppedImageViewHelper extends AbstractTagBasedViewHelper
         $variant = $this->arguments['variant'];
         $variantData = $this->imageDataProvider->getImageVariantData($fileReference, $variant);
 
-        $this->tag->addAttribute('src', $variantData['fallbackImageSrc']);
+        $this->tag->addAttribute('src', $variantData['fallbackImage']['src']);
         $this->tag->addAttribute('alt', (string)$fileReference->getAlternative());
+        $this->tag->addAttribute('width', $variantData['fallbackImage']['width']);
+        $this->tag->addAttribute('height', $variantData['fallbackImage']['height']);
         if ($fileReference->getTitle()) {
             $this->tag->addAttribute('title', (string)$fileReference->getTitle());
         }
