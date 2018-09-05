@@ -15,7 +15,6 @@ use TYPO3\CMS\Extbase\Service\ImageService;
 
 class ImageDataProvider implements SingletonInterface
 {
-
     /**
      * @var ImageService
      */
@@ -79,7 +78,7 @@ class ImageDataProvider implements SingletonInterface
                 'src' => $defaultImageUri,
                 'width' => (int)$sizeConfiguration['width'],
                 'height' => (int)$sizeConfiguration['height'],
-            ]
+            ],
         ];
     }
 
