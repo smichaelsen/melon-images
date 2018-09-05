@@ -8,7 +8,25 @@
       "Smichaelsen\\MelonImages\\": "Classes/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "Smichaelsen\\MelonImages\\Tests": "Tests/"
+    }
+  },
   "require-dev": {
-    "friendsofphp/php-cs-fixer": "^2.12"
+    "friendsofphp/php-cs-fixer": "^2.12",
+    "nimut/testing-framework": "^4.0"
+  },
+  "config": {
+    "vendor-dir": ".Build/vendor",
+    "bin-dir": ".Build/bin"
+  },
+  "extra": {
+    "typo3/cms": {
+      "extension-key": "melon_images",
+      "cms-package-dir": "{$vendor-dir}/typo3/cms",
+      "app-dir": ".Build",
+      "web-dir": ".Build/public"
+    }
   }
 }
