@@ -66,8 +66,8 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
             foreach ($pixelDensities as $pixelDensity) {
                 $imageUri = $this->processImage(
                     $fileReference,
-                    (int)round(($sizeConfiguration['aspectRatio']['x'] * $pixelDensity)),
-                    (int)round(($sizeConfiguration['aspectRatio']['y'] * $pixelDensity)),
+                    (int)round(($sizeConfiguration['width'] * $pixelDensity)),
+                    (int)round(($sizeConfiguration['height'] * $pixelDensity)),
                     $cropVariants->getCropArea($cropVariantId)
                 );
                 $srcset[] = $imageUri . ' ' . $pixelDensity . 'x';
@@ -85,8 +85,8 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         $sizeConfiguration = $this->getSizeConfiguration($fileReference, $lastCropVariantId);
         $defaultImageUri = $imageUri = $this->processImage(
             $fileReference,
-            (int)$sizeConfiguration['aspectRatio']['x'],
-            (int)$sizeConfiguration['aspectRatio']['y']
+            (int)$sizeConfiguration['width'],
+            (int)$sizeConfiguration['height']
         );
         $imgTitle = $fileReference->getTitle() ? 'title="' . htmlspecialchars($fileReference->getTitle()) . '"' : '';
         $sourceMarkups[] = sprintf(

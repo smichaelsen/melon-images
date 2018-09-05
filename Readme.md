@@ -5,12 +5,12 @@ This package uses the powerful responsive image cropping capabilities of TYPO3 a
 
 ![Image Cropping](doc/image-cropping.png?raw=true "Image Cropping")
 
-TYPO3 8.7 comes with the powerful feature of `cropVariant`s, which let's you define use cases for your image including `allowedAspectRatios` and optionally `coverAreas`.
+TYPO3 8.7 comes with the powerful feature of `cropVariant`s, which lets you define use cases for your image including `allowedAspectRatios` and optionally `coverAreas`.
 This package simplifies the configuration and frontend rendering of this feature.
 
 ## Configuration:
 
-The configuration happens completeley in TypoScript. This example configures 3 **variants** of the `tx_news_domain_model_news.fal_media` field,
+The configuration happens completely in TypoScript. This example configures 3 **variants** of the `tx_news_domain_model_news.fal_media` field,
 that are *detail*, *featured* and *teaser*. The use case is we want to use the same image in 3 different views with different cropping. Each
 variant can also have different **sizes**. The *detail* variant for example is available in the sizes *big* (for tablet and desktop
 viewport sizes) and *phone*. 
@@ -41,15 +41,15 @@ package.Smichaelsen\MelonImages {
                 big {
                   title = Detail Tablet & Desktop
                   breakpoints = tablet,desktop
-                  aspectRatio.x = 943
-                  aspectRatio.y = 419
+                  width = 943
+                  height = 419
                 }
 
                 phone {
                   # the title is omitted here and defaults to "Detail Phone" (derived from the name of the variant and the size)
                   breakpoints = phone
-                  aspectRatio.x = 480
-                  aspectRatio.y = 320
+                  width = 480
+                  height = 320
                 }
               }
             }
@@ -58,14 +58,14 @@ package.Smichaelsen\MelonImages {
               sizes {
                 big {
                   breakpoints = tablet,desktop
-                  aspectRatio.x = 748
-                  aspectRatio.y = 420
+                  width = 748
+                  height = 420
                 }
 
                 phone {
                   breakpoints = phone
-                  aspectRatio.x = 480
-                  aspectRatio.y = 400
+                  width = 480
+                  height = 400
                 }
               }
             }
@@ -73,8 +73,8 @@ package.Smichaelsen\MelonImages {
             teaser {
               sizes {
                 all {
-                  aspectRatio.x = 480
-                  aspectRatio.y = 420
+                  width = 480
+                  height = 420
                   coverAreas.1 {
                     x = 0.3
                     width = 0.7

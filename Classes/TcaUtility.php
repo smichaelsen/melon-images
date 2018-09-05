@@ -61,9 +61,9 @@ class TcaUtility
                 $cropVariantsTca[$cropVariantKey] = [
                     'title' => $cropVariantTitle,
                     'allowedAspectRatios' => [
-                        $sizeConfig['aspectRatio']['x'] . ' x ' . $sizeConfig['aspectRatio']['y'] => [
-                            'title' => $sizeConfig['aspectRatio']['x'] . ' x ' . $sizeConfig['aspectRatio']['y'],
-                            'value' => $sizeConfig['aspectRatio']['x'] / $sizeConfig['aspectRatio']['y'],
+                        $sizeConfig['width'] . ' x ' . $sizeConfig['height'] => [
+                            'title' => $sizeConfig['width'] . ' x ' . $sizeConfig['height'],
+                            'value' => $sizeConfig['width'] / $sizeConfig['height'],
                         ],
                     ],
                 ];
