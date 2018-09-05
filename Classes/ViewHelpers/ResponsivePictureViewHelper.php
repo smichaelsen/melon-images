@@ -27,6 +27,7 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         $this->registerUniversalTagAttributes();
         $this->registerArgument('fileReference', 'mixed', 'File reference to render', true);
         $this->registerArgument('variant', 'string', 'Name of the image variant to use', true);
+        $this->registerArgument('fallbackImageSize', 'string', 'Specify the size config to be used for the fallback image. Default is the last config.', false, null);
     }
 
     public function render(): string
@@ -40,7 +41,8 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         }
 
         $variant = $this->arguments['variant'];
-        $variantData = $this->imageDataProvider->getImageVariantData($fileReference, $variant);
+        $fallbackImageSize = $this->arguments['fallbackImageSize'];
+        $variantData = $this->imageDataProvider->getImageVariantData($fileReference, $variant, $fallbackImageSize);
 
         $tagContent = '';
         foreach ($variantData['sources'] as $source) {

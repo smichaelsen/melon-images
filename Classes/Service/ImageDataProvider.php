@@ -26,7 +26,7 @@ class ImageDataProvider implements SingletonInterface
         $this->imageService = $imageService;
     }
 
-    public function getImageVariantData(FileReference $fileReference, string $variant)
+    public function getImageVariantData(FileReference $fileReference, string $variant, $fallbackImageSize = null)
     {
         $cropConfiguration = json_decode((string)$fileReference->getProperty('crop'), true);
         // filter for all crop configurations that match the chosen image variant
@@ -42,6 +42,7 @@ class ImageDataProvider implements SingletonInterface
         foreach ($cropVariantIds as $cropVariantId) {
             $srcset = [];
             $sizeConfiguration = $this->getSizeConfiguration($fileReference, $cropVariantId);
+            $sizeIdentifier = explode('__', $cropVariantId)[1];
 
             foreach ($pixelDensities as $pixelDensity) {
                 $imageUri = $this->processImage(
@@ -55,19 +56,21 @@ class ImageDataProvider implements SingletonInterface
 
             $mediaQuery = $this->getMediaQueryFromSizeConfig($sizeConfiguration);
 
-            $sources[] = [
+            $sources[$sizeIdentifier] = [
                 'srcsets' => $srcset,
-                'mediaQuery' => $mediaQuery
+                'mediaQuery' => $mediaQuery,
+                'width' => (int)$sizeConfiguration['width'],
+                'height' => (int)$sizeConfiguration['height'],
             ];
         }
 
-        $lastCropVariantId = end($cropVariantIds);
-        $sizeConfiguration = $this->getSizeConfiguration($fileReference, $lastCropVariantId);
+        $cropVariantId = $fallbackImageSize ? ($variant . '__' . $fallbackImageSize) : end($cropVariantIds);
+        $sizeConfiguration = $this->getSizeConfiguration($fileReference, $cropVariantId);
         $defaultImageUri = $imageUri = $this->processImage(
             $fileReference,
             (int)$sizeConfiguration['width'],
             (int)$sizeConfiguration['height'],
-            $cropVariants->getCropArea($lastCropVariantId)
+            $cropVariants->getCropArea($cropVariantId)
         );
 
         return [

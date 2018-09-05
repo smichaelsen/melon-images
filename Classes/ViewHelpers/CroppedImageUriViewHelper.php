@@ -26,6 +26,7 @@ class CroppedImageUriViewHelper extends AbstractViewHelper
         parent::initializeArguments();
         $this->registerArgument('fileReference', 'mixed', 'File reference to render', true);
         $this->registerArgument('variant', 'string', 'Name of the image variant to use', true);
+        $this->registerArgument('fallbackImageSize', 'string', 'Specify the size config to be used for the fallback image. Default is the last config.', false, null);
     }
 
     public function render(): string
@@ -39,7 +40,8 @@ class CroppedImageUriViewHelper extends AbstractViewHelper
         }
 
         $variant = $this->arguments['variant'];
-        $variantData = $this->imageDataProvider->getImageVariantData($fileReference, $variant);
+        $fallbackImageSize = $this->arguments['fallbackImageSize'];
+        $variantData = $this->imageDataProvider->getImageVariantData($fileReference, $variant, $fallbackImageSize);
 
         return $variantData['fallbackImage']['src'];
     }
