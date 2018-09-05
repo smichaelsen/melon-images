@@ -10,10 +10,10 @@ This package simplifies the configuration and frontend rendering of this feature
 
 ## Configuration:
 
-The configuration happens completely in TypoScript. This example configures 3 **variants** of the `tx_news_domain_model_news.fal_media` field,
-that are *detail*, *featured* and *teaser*. The use case is we want to use the same image in 3 different views with different cropping. Each
+The configuration happens completely in TypoScript. This example configures 4 **variants** of the `tx_news_domain_model_news.fal_media` field,
+that are *detail*, *featured*, *teaser* and *square*. The use case is we want to use the same image in different views with different cropping. Each
 variant can also have different **sizes**. The *detail* variant for example is available in the sizes *big* (for tablet and desktop
-viewport sizes) and *phone*. 
+viewport sizes) and *phone*.
 
 ```
 package.Smichaelsen\MelonImages {
@@ -107,7 +107,7 @@ package.Smichaelsen\MelonImages {
 
 ### Responsive Image
 
-To render the reponsive image with the correct cropping use the provided ViewHelper:
+To render the reponsive image with the correct cropping use the **ResponsivePictureViewHelper**:
 
 ```
 <html
@@ -134,7 +134,8 @@ The rendering (with the above TypoScript config) looks something like this:
 
 ### Cropped Image and cropped image url
 
-The rendering as responsive `<picture>` tag is not always desirable. You can also just apply the cropping and ignore the sizes and breakpoints.
+The rendering as responsive `<picture>` tag is not always desirable. You can also just apply the cropping and ignore the sizes and breakpoints using
+**CroppedImageViewHelper** and **CroppedImageUriViewHelper**.
 
 ```
 <html
