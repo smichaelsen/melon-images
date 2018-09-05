@@ -105,7 +105,7 @@ package.Smichaelsen\MelonImages {
 
 ## Rendering
 
-### Responsive Image
+### Auto Render
 
 To render the reponsive image with the correct cropping use the **ResponsivePictureViewHelper**:
 
@@ -132,10 +132,9 @@ The rendering (with the above TypoScript config) looks something like this:
 </picture>
 ```
 
-### Cropped Image and cropped image url
+### Custom markup
 
-The rendering as responsive `<picture>` tag is not always desirable. You can also just apply the cropping and ignore the sizes and breakpoints using
-**CroppedImageViewHelper** and **CroppedImageUriViewHelper**.
+The rendering as responsive `<picture>` tag is not always desirable. You can also get the data of the sources and fallback image and use it in your own markup:
 
 ```
 <html
@@ -145,9 +144,11 @@ The rendering as responsive `<picture>` tag is not always desirable. You can als
     data-namespace-typo3-fluid="true"
 >
 
-<n:metaTag property="og:image" content="{melon:croppedImageUri(fileReference: newsItem.falMedia.0, variant: 'square')}" forceAbsoluteUrl="1" />
-
-<melon:croppedImage fileReference="{newsItem.falMedia.0}" variant="teaser"/>
+<melon:responsivePicture fileReference="{newsItem.falMedia.0}" variant="square" as="pictureData">
+    <n:metaTag property="og:image" content="{pictureData.fallbackImage.src}" forceAbsoluteUrl="1" />
+    <n:metaTag property="og:image:width" content="{pictureData.fallbackImage.width}" />
+    <n:metaTag property="og:image:height" content="{pictureData.fallbackImage.height}" />
+</melon:responsivePicture>
 
 </html>
 
@@ -157,6 +158,6 @@ The rendering looks something like this:
 
 ```
 <meta property="og:image" content="https://www.example.com/fileadmin/_processed_/e/d/myimage_e7a4c74e8b.jpg" />
-
-<img src="fileadmin/_processed_/e/d/myimage_712c5e4398.jpg" width="480" height="420" alt="">
+<meta property="og:image:width" content="512" />
+<meta property="og:image:height" content="512" />
 ```

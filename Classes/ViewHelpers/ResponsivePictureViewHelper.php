@@ -28,6 +28,7 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         $this->registerArgument('fileReference', 'mixed', 'File reference to render', true);
         $this->registerArgument('variant', 'string', 'Name of the image variant to use', true);
         $this->registerArgument('fallbackImageSize', 'string', 'Specify the size config to be used for the fallback image. Default is the last config.', false, null);
+        $this->registerArgument('as', 'string', 'Variable name for the picture data if you want to render with your own markup.', false, null);
     }
 
     public function render(): string
@@ -44,6 +45,14 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         $fallbackImageSize = $this->arguments['fallbackImageSize'];
         $variantData = $this->imageDataProvider->getImageVariantData($fileReference, $variant, $fallbackImageSize);
 
+        if ($this->arguments['as']) {
+            $this->templateVariableContainer->add($this->arguments['as'], $variantData);
+            $content = $this->renderChildren();
+            $this->templateVariableContainer->remove($this->arguments['as']);
+            return $content;
+        }
+
+        // auto render
         $tagContent = '';
         foreach ($variantData['sources'] as $source) {
             $mediaQuery = $source['mediaQuery'];
