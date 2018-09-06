@@ -6,6 +6,7 @@ use Smichaelsen\MelonImages\Service\ImageDataProvider;
 use TYPO3\CMS\Core\Resource\FileReference;
 use TYPO3\CMS\Extbase\Domain\Model\FileReference as ExtbaseFileReferenceModel;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper;
+use TYPO3Fluid\Fluid\Core\ViewHelper\TagBuilder;
 
 class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
 {
@@ -29,6 +30,7 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         $this->registerArgument('variant', 'string', 'Name of the image variant to use', true);
         $this->registerArgument('fallbackImageSize', 'string', 'Specify the size config to be used for the fallback image. Default is the last config.', false, null);
         $this->registerArgument('as', 'string', 'Variable name for the picture data if you want to render with your own markup.', false, null);
+        $this->registerArgument('additionalImageAttributes', 'array', 'Additional attributes to be applied to the img tag', false, []);
     }
 
     public function render(): string
@@ -55,22 +57,40 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         // auto render
         $tagContent = '';
         foreach ($variantData['sources'] as $source) {
-            $mediaQuery = $source['mediaQuery'];
-            if (!empty($mediaQuery)) {
-                $mediaQuery = ' media="' . $mediaQuery . '"';
-            }
-            $tagContent .= '<source srcset="' . implode(', ', $source['srcsets']) . '"' . $mediaQuery . '>' . "\n";
+            $tagContent .= $this->renderSourceTag($source['srcsets'], $source['mediaQuery']);
         }
-
-        $title = $fileReference->getTitle() ? 'title="' . htmlspecialchars($fileReference->getTitle()) . '"' : '';
-        $tagContent .= sprintf(
-            '<img src="%s" alt="%s" %s>',
+        $tagContent .= $this->renderImageTag(
             $variantData['fallbackImage']['src'],
-            htmlspecialchars((string)$fileReference->getAlternative()),
-            $title
+            (string)$fileReference->getAlternative(),
+            (string)$fileReference->getTitle(),
+            $this->arguments['additionalImageAttributes']
         );
 
         $this->tag->setContent($tagContent);
         return $this->tag->render();
+    }
+
+    protected function renderSourceTag(array $sourceSets, string $mediaQuery): string
+    {
+        $tag = new TagBuilder('source');
+        $tag->addAttribute('srcset', implode(', ', $sourceSets));
+        if (!empty($mediaQuery)) {
+            $tag->addAttribute('media', $mediaQuery);
+        }
+        return $tag->render();
+    }
+
+    protected function renderImageTag(string $src, string $alternative = '', string $title = null, array $additionalAttributes = [])
+    {
+        $tag = new TagBuilder('img');
+        $tag->addAttribute('src', $src);
+        $tag->addAttribute('alt', $alternative);
+        if (!empty($title)) {
+            $tag->addAttribute('title', $title);
+        }
+        foreach ($additionalAttributes as $name => $value) {
+            $tag->addAttribute($name, $value);
+        }
+        return $tag->render();
     }
 }
