@@ -25,7 +25,7 @@ class ImageDataProvider implements SingletonInterface
         $this->imageService = $imageService;
     }
 
-    public function getImageVariantData(FileReference $fileReference, string $variant, $fallbackImageSize = null)
+    public function getImageVariantData(FileReference $fileReference, string $variant, $fallbackImageSize = null): ?array
     {
         $cropConfiguration = json_decode((string)$fileReference->getProperty('crop'), true);
         // filter for all crop configurations that match the chosen image variant
@@ -38,9 +38,13 @@ class ImageDataProvider implements SingletonInterface
 
         $sources = [];
         $pixelDensities = $this->getPixelDensitiesFromTypoScript();
+        $lastCropVariantId = null;
         foreach ($cropVariantIds as $cropVariantId) {
             $srcset = [];
             $sizeConfiguration = $this->getSizeConfiguration($fileReference, $cropVariantId);
+            if ($sizeConfiguration === null) {
+                continue;
+            }
             $sizeIdentifier = explode('__', $cropVariantId)[1];
 
             foreach ($pixelDensities as $pixelDensity) {
@@ -61,9 +65,13 @@ class ImageDataProvider implements SingletonInterface
                 'width' => (int)$sizeConfiguration['width'],
                 'height' => (int)$sizeConfiguration['height'],
             ];
+            $lastCropVariantId = $cropVariantId;
         }
 
-        $cropVariantId = $fallbackImageSize ? ($variant . '__' . $fallbackImageSize) : end($cropVariantIds);
+        $cropVariantId = $fallbackImageSize ? ($variant . '__' . $fallbackImageSize) : $lastCropVariantId;
+        if ($cropVariantId === null) {
+            return null;
+        }
         $sizeConfiguration = $this->getSizeConfiguration($fileReference, $cropVariantId);
         $defaultImageUri = $imageUri = $this->processImage(
             $fileReference,
@@ -102,10 +110,10 @@ class ImageDataProvider implements SingletonInterface
         return $this->imageService->getImageUri($processedImage);
     }
 
-    protected function getSizeConfiguration(FileReference $fileReference, string $cropVariantId): array
+    protected function getSizeConfiguration(FileReference $fileReference, string $cropVariantId): ?array
     {
         list($variantIdentifier, $sizeIdentifier) = explode('__', $cropVariantId);
-        return $this->getMelonImagesConfigForFileReference($fileReference)['variants'][$variantIdentifier]['sizes'][$sizeIdentifier];
+        return $this->getMelonImagesConfigForFileReference($fileReference)['variants'][$variantIdentifier]['sizes'][$sizeIdentifier] ?? null;
     }
 
     protected function getBreakpointsFromTypoScript(): array

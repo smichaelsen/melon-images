@@ -8,6 +8,9 @@
       "Smichaelsen\\MelonImages\\": "Classes/"
     }
   },
+  "require": {
+    "php": "7.1.*"
+  },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^2.12"
   }
