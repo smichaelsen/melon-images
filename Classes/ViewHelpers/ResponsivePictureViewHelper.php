@@ -4,7 +4,10 @@ namespace Smichaelsen\MelonImages\ViewHelpers;
 
 use Smichaelsen\MelonImages\Service\ImageDataProvider;
 use TYPO3\CMS\Core\Resource\FileReference;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Domain\Model\FileReference as ExtbaseFileReferenceModel;
+use TYPO3\CMS\Extbase\Object\ObjectManager;
+use TYPO3\CMS\Extbase\Service\ImageService;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper;
 use TYPO3Fluid\Fluid\Core\ViewHelper\TagBuilder;
 
@@ -54,17 +57,28 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
             return $content;
         }
 
-        // auto render
-        $tagContent = '';
-        foreach ($variantData['sources'] as $source) {
-            $tagContent .= $this->renderSourceTag($source['srcsets'], $source['mediaQuery']);
+        if ($variantData === null) {
+            // variant data could not be loaded. fallback rendering (without taking care of image size or aspect ratio):
+            $imageService = GeneralUtility::makeInstance(ObjectManager::class)->get(ImageService::class);
+            $tagContent = $this->renderImageTag(
+                $imageService->getImageUri($fileReference),
+                (string)$fileReference->getAlternative(),
+                (string)$fileReference->getTitle(),
+                $this->arguments['additionalImageAttributes']
+            );
+        } else {
+            // auto render
+            $tagContent = '';
+            foreach ($variantData['sources'] as $source) {
+                $tagContent .= $this->renderSourceTag($source['srcsets'], $source['mediaQuery']);
+            }
+            $tagContent .= $this->renderImageTag(
+                $variantData['fallbackImage']['src'],
+                (string)$fileReference->getAlternative(),
+                (string)$fileReference->getTitle(),
+                $this->arguments['additionalImageAttributes']
+            );
         }
-        $tagContent .= $this->renderImageTag(
-            $variantData['fallbackImage']['src'],
-            (string)$fileReference->getAlternative(),
-            (string)$fileReference->getTitle(),
-            $this->arguments['additionalImageAttributes']
-        );
 
         $this->tag->setContent($tagContent);
         return $this->tag->render();
