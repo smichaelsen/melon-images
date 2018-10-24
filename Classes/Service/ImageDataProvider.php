@@ -28,6 +28,9 @@ class ImageDataProvider implements SingletonInterface
     public function getImageVariantData(FileReference $fileReference, string $variant, $fallbackImageSize = null): ?array
     {
         $cropConfiguration = json_decode((string)$fileReference->getProperty('crop'), true);
+        if ($cropConfiguration === null) {
+            return null;
+        }
         // filter for all crop configurations that match the chosen image variant
         $matchingCropConfiguration = array_filter($cropConfiguration, function ($key) use ($variant) {
             return strpos($key, $variant . '__') === 0;
