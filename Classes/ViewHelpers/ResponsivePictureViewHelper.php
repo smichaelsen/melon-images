@@ -34,6 +34,7 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         $this->registerArgument('fallbackImageSize', 'string', 'Specify the size config to be used for the fallback image. Default is the last config.', false, null);
         $this->registerArgument('as', 'string', 'Variable name for the picture data if you want to render with your own markup.', false, null);
         $this->registerArgument('additionalImageAttributes', 'array', 'Additional attributes to be applied to the img tag', false, []);
+        $this->registerArgument('absolute', 'boolean', 'Generate absolute image URLs', false, false);
     }
 
     public function render(): string
@@ -48,7 +49,7 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
 
         $variant = $this->arguments['variant'];
         $fallbackImageSize = $this->arguments['fallbackImageSize'];
-        $variantData = $this->imageDataProvider->getImageVariantData($fileReference, $variant, $fallbackImageSize);
+        $variantData = $this->imageDataProvider->getImageVariantData($fileReference, $variant, $fallbackImageSize, $this->arguments['absolute']);
 
         if ($this->arguments['as']) {
             $this->templateVariableContainer->add($this->arguments['as'], $variantData);

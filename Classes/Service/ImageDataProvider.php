@@ -25,7 +25,7 @@ class ImageDataProvider implements SingletonInterface
         $this->imageService = $imageService;
     }
 
-    public function getImageVariantData(FileReference $fileReference, string $variant, $fallbackImageSize = null): ?array
+    public function getImageVariantData(FileReference $fileReference, string $variant, $fallbackImageSize = null, $absolute = false): ?array
     {
         $cropConfiguration = json_decode((string)$fileReference->getProperty('crop'), true);
         if ($cropConfiguration === null) {
@@ -55,7 +55,8 @@ class ImageDataProvider implements SingletonInterface
                     $fileReference,
                     (int)round(($sizeConfiguration['width'] * $pixelDensity)),
                     (int)round(($sizeConfiguration['height'] * $pixelDensity)),
-                    $cropVariants->getCropArea($cropVariantId)
+                    $cropVariants->getCropArea($cropVariantId),
+                    $absolute
                 );
                 $srcset[] = $imageUri . ' ' . $pixelDensity . 'x';
             }
@@ -80,7 +81,8 @@ class ImageDataProvider implements SingletonInterface
             $fileReference,
             (int)$sizeConfiguration['width'],
             (int)$sizeConfiguration['height'],
-            $cropVariants->getCropArea($cropVariantId)
+            $cropVariants->getCropArea($cropVariantId),
+            $absolute
         );
 
         return [
@@ -97,7 +99,8 @@ class ImageDataProvider implements SingletonInterface
         FileReference $fileReference,
         int $width,
         int $height,
-        $cropArea = null
+        ?Area $cropArea,
+        bool $absolute
     ): string {
         if ($cropArea instanceof Area && !$cropArea->isEmpty()) {
             $cropArea = $cropArea->makeAbsoluteBasedOnFile($fileReference);
@@ -110,7 +113,7 @@ class ImageDataProvider implements SingletonInterface
             'crop' => $cropArea,
         ];
         $processedImage = $this->imageService->applyProcessingInstructions($fileReference, $processingInstructions);
-        return $this->imageService->getImageUri($processedImage);
+        return $this->imageService->getImageUri($processedImage, $absolute);
     }
 
     protected function getSizeConfiguration(FileReference $fileReference, string $cropVariantId): ?array
