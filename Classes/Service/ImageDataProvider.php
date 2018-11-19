@@ -2,12 +2,12 @@
 declare(strict_types=1);
 namespace Smichaelsen\MelonImages\Service;
 
-use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Imaging\ImageManipulation\Area;
 use TYPO3\CMS\Core\Imaging\ImageManipulation\CropVariantCollection;
 use TYPO3\CMS\Core\Resource\FileReference;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\TypoScript\TypoScriptService;
+use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
 use TYPO3\CMS\Extbase\Object\ObjectManager;
@@ -32,8 +32,10 @@ class ImageDataProvider implements SingletonInterface
             return null;
         }
         // filter for all crop configurations that match the chosen image variant
-        $matchingCropConfiguration = array_filter($cropConfiguration, function ($key) use ($variant) {
-            return strpos($key, $variant . '__') === 0;
+        $matchingCropConfiguration = array_filter($cropConfiguration, function ($cropVariantId) use ($variant) {
+            // the variant is the second last segment in the cropVariantId
+            $segments = explode('__', $cropVariantId);
+            return $variant === $segments[count($segments) - 2];
         }, ARRAY_FILTER_USE_KEY);
         $cropVariants = CropVariantCollection::create(json_encode($matchingCropConfiguration));
         $cropVariantIds = array_keys($matchingCropConfiguration);
@@ -41,14 +43,17 @@ class ImageDataProvider implements SingletonInterface
 
         $sources = [];
         $pixelDensities = $this->getPixelDensitiesFromTypoScript();
-        $lastCropVariantId = null;
+        /** @var string $fallbackCropVariantId */
+        $fallbackCropVariantId = null;
         foreach ($cropVariantIds as $cropVariantId) {
             $srcset = [];
-            $sizeConfiguration = $this->getSizeConfiguration($fileReference, $cropVariantId);
+            $sizeConfiguration = $this->getSizeConfiguration($cropVariantId);
             if ($sizeConfiguration === null) {
                 continue;
             }
-            $sizeIdentifier = explode('__', $cropVariantId)[1];
+
+            // the size identifier is the last segment in the cropVariantId
+            $sizeIdentifier = array_pop(explode('__', $cropVariantId));
 
             foreach ($pixelDensities as $pixelDensity) {
                 $imageUri = $this->processImage(
@@ -69,19 +74,24 @@ class ImageDataProvider implements SingletonInterface
                 'width' => (int)$sizeConfiguration['width'],
                 'height' => (int)$sizeConfiguration['height'],
             ];
-            $lastCropVariantId = $cropVariantId;
-        }
 
-        $cropVariantId = $fallbackImageSize ? ($variant . '__' . $fallbackImageSize) : $lastCropVariantId;
-        if ($cropVariantId === null) {
+            if ($fallbackImageSize) {
+                if ($fallbackImageSize === $sizeIdentifier) {
+                    $fallbackCropVariantId = $cropVariantId;
+                }
+            } else {
+                $fallbackCropVariantId = $cropVariantId;
+            }
+        }
+        if ($fallbackCropVariantId === null) {
             return null;
         }
-        $sizeConfiguration = $this->getSizeConfiguration($fileReference, $cropVariantId);
+        $sizeConfiguration = $this->getSizeConfiguration($fallbackCropVariantId);
         $defaultImageUri = $imageUri = $this->processImage(
             $fileReference,
             (int)$sizeConfiguration['width'],
             (int)$sizeConfiguration['height'],
-            $cropVariants->getCropArea($cropVariantId),
+            $cropVariants->getCropArea($fallbackCropVariantId),
             $absolute
         );
 
@@ -116,10 +126,16 @@ class ImageDataProvider implements SingletonInterface
         return $this->imageService->getImageUri($processedImage, $absolute);
     }
 
-    protected function getSizeConfiguration(FileReference $fileReference, string $cropVariantId): ?array
+    protected function getSizeConfiguration(string $cropVariantId): ?array
     {
-        list($variantIdentifier, $sizeIdentifier) = explode('__', $cropVariantId);
-        return $this->getMelonImagesConfigForFileReference($fileReference)['variants'][$variantIdentifier]['sizes'][$sizeIdentifier] ?? null;
+        $segments = explode('__', $cropVariantId);
+        $sizeIdentifier = array_pop($segments);
+        $variantIdentifier = array_pop($segments);
+        $typoscriptPath = implode('/', $segments);
+        if (empty($typoscriptPath)) {
+            return null;
+        }
+        return $this->getMelonImagesConfigForTyposcriptPath($typoscriptPath)['variants'][$variantIdentifier]['sizes'][$sizeIdentifier] ?? null;
     }
 
     protected function getBreakpointsFromTypoScript(): array
@@ -171,27 +187,23 @@ class ImageDataProvider implements SingletonInterface
         return implode(', ', $breakpoints);
     }
 
-    protected function getMelonImagesConfigForFileReference(FileReference $fileReference): array
+    protected function getMelonImagesConfigForTyposcriptPath(string $typoscriptPath): ?array
     {
-        static $melonConfigPerFileReferenceUid = [];
-        if (!isset($melonConfigPerFileReferenceUid[$fileReference->getUid()])) {
-            $melonConfigPerFileReferenceUid[$fileReference->getUid()] = (function () use ($fileReference) {
-                $typoScriptSettings = $this->getTypoScriptSettings();
-                $table = $fileReference->getProperty('tablenames');
-                $tableSettings = $typoScriptSettings['croppingConfiguration'][$table];
-                unset($typoScriptSettings);
-                $fieldName = $fileReference->getProperty('fieldname');
-                $typeField = $GLOBALS['TCA'][$table]['ctrl']['type'];
-                if ($typeField) {
-                    $record = BackendUtility::getRecord($table, $fileReference->getProperty('uid_foreign'), $typeField);
-                    $type = $record[$typeField];
-                    if ($tableSettings[$type]) {
-                        return $tableSettings[$type][$fieldName];
-                    }
+        static $melonConfigPerTcaPath = [];
+        if (!isset($melonConfigPerTcaPath[$typoscriptPath])) {
+            $typoScriptSettings = $this->getTypoScriptSettings();
+            try {
+                $melonConfigPerTcaPath[$typoscriptPath] = ArrayUtility::getValueByPath($typoScriptSettings['croppingConfiguration'], $typoscriptPath);
+            } catch (\RuntimeException $e) {
+                // path does not exist
+                if ($e->getCode() === 1341397869) {
+                    $melonConfigPerTcaPath[$typoscriptPath] = null;
+                } else {
+                    throw $e;
                 }
-                return $tableSettings['_all'][$fieldName];
-            })();
+            }
+
         }
-        return $melonConfigPerFileReferenceUid[$fileReference->getUid()];
+        return $melonConfigPerTcaPath[$typoscriptPath];
     }
 }

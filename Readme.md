@@ -161,3 +161,9 @@ The rendering looks something like this:
 <meta property="og:image:width" content="512" />
 <meta property="og:image:height" content="512" />
 ```
+
+## Breaking Changes
+
+### From 0.8 to 0.9
+
+With upgrading you will loose all cropping information. You need to crop the images again the backend.
