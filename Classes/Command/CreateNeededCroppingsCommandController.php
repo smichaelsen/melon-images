@@ -93,16 +93,29 @@ class CreateNeededCroppingsCommandController extends CommandController
                 foreach ($variantConfiguration['sizes'] as $size => $sizeConfiguration) {
                     $variantId = $variantIdPrefix . '__' . $variant . '__' . $size;
                     if (!isset($cropConfiguration[$variantId])) {
-                        $cropConfiguration[$variantId] = [
-                            'cropArea' => $this->calculateCropArea(
-                                (int)$fileReferenceRecord['width'],
-                                (int)$fileReferenceRecord['height'],
-                                (int)$sizeConfiguration['width'],
-                                (int)$sizeConfiguration['height']
-                            ),
-                            'selectedRatio' => $sizeConfiguration['width'] . ' x ' . $sizeConfiguration['height'],
-                            'focusArea' => null,
-                        ];
+                        if (isset($sizeConfiguration['width'], $sizeConfiguration['height'])) {
+                            $cropConfiguration[$variantId] = [
+                                'cropArea' => $this->calculateCropArea(
+                                    (int)$fileReferenceRecord['width'],
+                                    (int)$fileReferenceRecord['height'],
+                                    (int)$sizeConfiguration['width'],
+                                    (int)$sizeConfiguration['height']
+                                ),
+                                'selectedRatio' => $sizeConfiguration['width'] . ' x ' . $sizeConfiguration['height'],
+                                'focusArea' => null,
+                            ];
+                        } else {
+                            $cropConfiguration[$variantId] = [
+                                'cropArea' => [
+                                    'width' => 1,
+                                    'height' => 1,
+                                    'x' => 0,
+                                    'y' => 0,
+                                ],
+                                'selectedRatio' => $fileReferenceRecord['width'] . ' x ' . $fileReferenceRecord['height'],
+                                'focusArea' => null,
+                            ];
+                        }
                         $croppingsCreated++;
                     }
                 }

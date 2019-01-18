@@ -56,13 +56,17 @@ class ImageDataProvider implements SingletonInterface
             $sizeIdentifier = array_pop(explode('__', $cropVariantId));
 
             foreach ($pixelDensities as $pixelDensity) {
-                $imageUri = $this->processImage(
-                    $fileReference,
-                    (int)round(($sizeConfiguration['width'] * $pixelDensity)),
-                    (int)round(($sizeConfiguration['height'] * $pixelDensity)),
-                    $cropVariants->getCropArea($cropVariantId),
-                    $absolute
-                );
+                if (isset($sizeConfiguration['width'])) {
+                    $width = (int)round(($sizeConfiguration['width'] * $pixelDensity));
+                } else {
+                    $width = null;
+                }
+                if (isset($sizeConfiguration['height'])) {
+                    $height = (int)round(($sizeConfiguration['height'] * $pixelDensity));
+                } else {
+                    $height = null;
+                }
+                $imageUri = $this->processImage($fileReference, $width, $height, $cropVariants->getCropArea($cropVariantId), $absolute);
                 $srcset[] = $imageUri . ' ' . $pixelDensity . 'x';
             }
 
@@ -87,28 +91,34 @@ class ImageDataProvider implements SingletonInterface
             return null;
         }
         $sizeConfiguration = $this->getSizeConfiguration($fallbackCropVariantId);
-        $defaultImageUri = $imageUri = $this->processImage(
-            $fileReference,
-            (int)$sizeConfiguration['width'],
-            (int)$sizeConfiguration['height'],
-            $cropVariants->getCropArea($fallbackCropVariantId),
-            $absolute
-        );
+        $fallbackWidth = $sizeConfiguration['width'] ? (int)$sizeConfiguration['width'] : null;
+        $fallbackHeight = $sizeConfiguration['height'] ? (int)$sizeConfiguration['height'] : null;
+        $fallbackImageConfig = [
+            'src' => $imageUri = $this->processImage(
+                $fileReference,
+                $fallbackWidth,
+                $fallbackHeight,
+                $cropVariants->getCropArea($fallbackCropVariantId),
+                $absolute
+            ),
+        ];
+        if ($fallbackWidth !== null) {
+            $fallbackImageConfig['width'] = $fallbackWidth;
+        }
+        if ($fallbackHeight !== null) {
+            $fallbackImageConfig['height'] = $fallbackHeight;
+        }
 
         return [
             'sources' => $sources,
-            'fallbackImage' => [
-                'src' => $defaultImageUri,
-                'width' => (int)$sizeConfiguration['width'],
-                'height' => (int)$sizeConfiguration['height'],
-            ],
+            'fallbackImage' => $fallbackImageConfig,
         ];
     }
 
     protected function processImage(
         FileReference $fileReference,
-        int $width,
-        int $height,
+        ?int $width,
+        ?int $height,
         ?Area $cropArea,
         bool $absolute
     ): string {
@@ -118,10 +128,14 @@ class ImageDataProvider implements SingletonInterface
             $cropArea = null;
         }
         $processingInstructions = [
-            'width' => $width,
-            'height' => $height,
             'crop' => $cropArea,
         ];
+        if ($width !== null) {
+            $processingInstructions['width'] = $width;
+        }
+        if ($height !== null) {
+            $processingInstructions['height'] = $height;
+        }
         $processedImage = $this->imageService->applyProcessingInstructions($fileReference, $processingInstructions);
         return $this->imageService->getImageUri($processedImage, $absolute);
     }
