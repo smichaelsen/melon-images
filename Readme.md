@@ -303,9 +303,9 @@ package.Smichaelsen\MelonImages.croppingConfiguration.tx_news_domain_model_news.
 
 `package.Smichaelsen\MelonImages.croppingConfiguration.<table>.<recordType>.<fieldName>.variants.<variantName>.sizes.<sizeName>`
 
-`title` (optional): Title of the size that is shown to the backend user. Per default the variant name and size name is used.
-`breakpoints` (optional): Comma separated list of breakpoint names (See *1. Breakpoints*) that this size is used for. If omitted the size will have no media query condition is used on all screens - recommended if you use only one size for the given variant.
-`width` (optional): Width in pixels the image is rendered in.
+`title` (optional): Title of the size that is shown to the backend user. Per default the variant name and size name is used. <br>
+`breakpoints` (optional): Comma separated list of breakpoint names (See *1. Breakpoints*) that this size is used for. If omitted the size will have no media query condition is used on all screens - recommended if you use only one size for the given variant. <br>
+`width` (optional): Width in pixels the image is rendered in. <br>
 `height` (optional): Height in pixels the image is rendered in.
 
 If you provide `width` and `height` it results in a fixed aspect ratio that is enforced in the backend cropping tool. Neat!
@@ -318,9 +318,9 @@ Numerical array of cover areas. See the [TCA Reference](https://docs.typo3.org/t
 
 Each cover area needs has following properties:
 
-`x:` Horizontal position of the upper left corner of the cover area from 0 to 1 (0 is the left, 1 the right edge of the image)
-`y:` Vertical Position of the upper left corner of the cover area from 0 to 1 (0 is the top, 1 the bottom edge of the image)
-`width` Width of the cover area from 0 to 1 (1 being 100% of the image width)
+`x:` Horizontal position of the upper left corner of the cover area from 0 to 1 (0 is the left, 1 the right edge of the image) <br>
+`y:` Vertical Position of the upper left corner of the cover area from 0 to 1 (0 is the top, 1 the bottom edge of the image) <br>
+`width` Width of the cover area from 0 to 1 (1 being 100% of the image width) <br>
 `height` Height of the cover area from 0 to 1 (1 being 100% of the image height)
 
 Example:
@@ -345,10 +345,10 @@ package.Smichaelsen\MelonImages.croppingConfiguration.tx_news_domain_model_news.
 
 See the [TCA Reference](https://docs.typo3.org/typo3cms/TCAReference/ColumnsConfig/Type/ImageManipulation.html#cropvariants) for details on that feature.
 
-`x:` Horizontal position of the upper left corner of the initial focus area from 0 to 1 (0 is the left, 1 the right edge of the image)
-`y:` Vertical Position of the upper left corner of the initial focus area from 0 to 1 (0 is the top, 1 the bottom edge of the image)
-`width` Width of the initial focus area from 0 to 1 (1 being 100% of the image width)
-`height` Height of the initial focus area from 0 to 1 (1 being 100% of the image height)
+`x:` Horizontal position of the upper left corner of the initial focus area from 0 to 1 (0 is the left, 1 the right edge of the image) <br>
+`y:` Vertical Position of the upper left corner of the initial focus area from 0 to 1 (0 is the top, 1 the bottom edge of the image) <br>
+`width` Width of the initial focus area from 0 to 1 (1 being 100% of the image width) <br>
+`height` Height of the initial focus area from 0 to 1 (1 being 100% of the image height) <br>
 
 The position and dimensions of the focus area can be adjusted by the editor in the backend to mark the crucial area of the image.
 
@@ -408,4 +408,4 @@ You can nest this configuration as deep as you need it to be.
 
 ### From 0.8 to 0.9
 
-With upgrading you will loose all cropping information. You need to crop the images again the backend. ()
+With upgrading you will loose all cropping information. You need to crop the images again the backend.
