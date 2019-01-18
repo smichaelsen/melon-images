@@ -99,13 +99,22 @@ class TcaUtility
                 $cropVariantKey = implode('__', $variantIdPrefixParts) . '__' . $variantIdentifier . '__' . $sizeIdentifier;
                 $cropVariantsTca[$cropVariantKey] = [
                     'title' => $cropVariantTitle,
-                    'allowedAspectRatios' => [
+                ];
+                if (isset($sizeConfig['width'], $sizeConfig['height'])) {
+                    $cropVariantsTca[$cropVariantKey]['allowedAspectRatios'] = [
                         $sizeConfig['width'] . ' x ' . $sizeConfig['height'] => [
                             'title' => $sizeConfig['width'] . ' x ' . $sizeConfig['height'],
                             'value' => $sizeConfig['width'] / $sizeConfig['height'],
                         ],
-                    ],
-                ];
+                    ];
+                } else {
+                    $cropVariantsTca[$cropVariantKey]['allowedAspectRatios'] = [
+                        'NaN' => [
+                            'title' => 'LLL:EXT:lang/Resources/Private/Language/locallang_wizards.xlf:imwizard.ratio.free',
+                            'value' => .0,
+                        ],
+                    ];
+                }
                 if (!empty($sizeConfig['coverAreas'])) {
                     $cropVariantsTca[$cropVariantKey]['coverAreas'] = $sizeConfig['coverAreas'];
                 }
