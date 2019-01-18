@@ -89,10 +89,12 @@ class TcaUtility
         foreach ($fieldConfig['variants'] as $variantIdentifier => $variantConfig) {
             $variantTitle = $variantConfig['title'] ?: ucfirst($variantIdentifier);
             foreach ($variantConfig['sizes'] as $sizeIdentifier => $sizeConfig) {
-                if (count($variantConfig['sizes']) === 1) {
+                if (isset($sizeConfig['title'])) {
+                    $cropVariantTitle = $sizeConfig['title'];
+                } elseif (count($variantConfig['sizes']) === 1) {
                     $cropVariantTitle = $variantTitle;
                 } else {
-                    $cropVariantTitle = $sizeConfig['title'] ?: $variantTitle . ' ' . ucfirst($sizeIdentifier);
+                    $cropVariantTitle = $variantTitle . ' ' . ucfirst($sizeIdentifier);
                 }
                 $cropVariantKey = implode('__', $variantIdPrefixParts) . '__' . $variantIdentifier . '__' . $sizeIdentifier;
                 $cropVariantsTca[$cropVariantKey] = [
