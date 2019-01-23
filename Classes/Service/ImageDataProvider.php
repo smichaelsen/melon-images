@@ -5,6 +5,7 @@ namespace Smichaelsen\MelonImages\Service;
 use TYPO3\CMS\Core\Imaging\ImageManipulation\Area;
 use TYPO3\CMS\Core\Imaging\ImageManipulation\CropVariantCollection;
 use TYPO3\CMS\Core\Resource\FileReference;
+use TYPO3\CMS\Core\Resource\ProcessedFile;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\TypoScript\TypoScriptService;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
@@ -66,7 +67,8 @@ class ImageDataProvider implements SingletonInterface
                 } else {
                     $height = null;
                 }
-                $imageUri = $this->processImage($fileReference, $width, $height, $cropVariants->getCropArea($cropVariantId), $absolute);
+                $processedImage = $this->processImage($fileReference, $width, $height, $cropVariants->getCropArea($cropVariantId));
+                $imageUri = $this->imageService->getImageUri($processedImage, $absolute);
                 $srcset[] = $imageUri . ' ' . $pixelDensity . 'x';
             }
 
@@ -93,21 +95,17 @@ class ImageDataProvider implements SingletonInterface
         $sizeConfiguration = $this->getSizeConfiguration($fallbackCropVariantId);
         $fallbackWidth = $sizeConfiguration['width'] ? (int)$sizeConfiguration['width'] : null;
         $fallbackHeight = $sizeConfiguration['height'] ? (int)$sizeConfiguration['height'] : null;
+        $processedFallbackImage = $this->processImage(
+            $fileReference,
+            $fallbackWidth,
+            $fallbackHeight,
+            $cropVariants->getCropArea($fallbackCropVariantId)
+        );
         $fallbackImageConfig = [
-            'src' => $imageUri = $this->processImage(
-                $fileReference,
-                $fallbackWidth,
-                $fallbackHeight,
-                $cropVariants->getCropArea($fallbackCropVariantId),
-                $absolute
-            ),
+            'src' => $this->imageService->getImageUri($processedFallbackImage, $absolute),
+            'width' => $processedFallbackImage->getProperties()['width'],
+            'height' => $processedFallbackImage->getProperties()['height']
         ];
-        if ($fallbackWidth !== null) {
-            $fallbackImageConfig['width'] = $fallbackWidth;
-        }
-        if ($fallbackHeight !== null) {
-            $fallbackImageConfig['height'] = $fallbackHeight;
-        }
 
         return [
             'sources' => $sources,
@@ -119,9 +117,8 @@ class ImageDataProvider implements SingletonInterface
         FileReference $fileReference,
         ?int $width,
         ?int $height,
-        ?Area $cropArea,
-        bool $absolute
-    ): string {
+        ?Area $cropArea
+    ): ProcessedFile {
         if ($cropArea instanceof Area && !$cropArea->isEmpty()) {
             $cropArea = $cropArea->makeAbsoluteBasedOnFile($fileReference);
         } else {
@@ -136,8 +133,7 @@ class ImageDataProvider implements SingletonInterface
         if ($height !== null) {
             $processingInstructions['height'] = $height;
         }
-        $processedImage = $this->imageService->applyProcessingInstructions($fileReference, $processingInstructions);
-        return $this->imageService->getImageUri($processedImage, $absolute);
+        return $this->imageService->applyProcessingInstructions($fileReference, $processingInstructions);
     }
 
     protected function getSizeConfiguration(string $cropVariantId): ?array
