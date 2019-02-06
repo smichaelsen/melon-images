@@ -100,14 +100,22 @@ class TcaUtility
                 $cropVariantsTca[$cropVariantKey] = [
                     'title' => $cropVariantTitle,
                 ];
+                $cropVariantsTca[$cropVariantKey]['allowedAspectRatios'] = [];
                 if (isset($sizeConfig['width'], $sizeConfig['height'])) {
-                    $cropVariantsTca[$cropVariantKey]['allowedAspectRatios'] = [
-                        $sizeConfig['width'] . ' x ' . $sizeConfig['height'] => [
-                            'title' => $sizeConfig['width'] . ' x ' . $sizeConfig['height'],
-                            'value' => $sizeConfig['width'] / $sizeConfig['height'],
-                        ],
+                    $cropVariantsTca[$cropVariantKey]['allowedAspectRatios'][$sizeConfig['width'] . ' x ' . $sizeConfig['height']] = [
+                        'title' => $sizeConfig['width'] . ' x ' . $sizeConfig['height'],
+                        'value' => $sizeConfig['width'] / $sizeConfig['height'],
                     ];
-                } else {
+                }
+                if (isset($sizeConfig['allowedRatios']) && count($sizeConfig['allowedRatios']) > 0) {
+                    foreach ($sizeConfig['allowedRatios'] as $dimensionKey => $dimensionConfig) {
+                        $cropVariantsTca[$cropVariantKey]['allowedAspectRatios'][$dimensionKey] = [
+                            'title' => $dimensionConfig['title'] ?? $dimensionKey,
+                            'value' => $dimensionConfig['width'] / $dimensionConfig['height'],
+                        ];
+                    }
+                }
+                if (count($cropVariantsTca[$cropVariantKey]['allowedAspectRatios']) === 0) {
                     $cropVariantsTca[$cropVariantKey]['allowedAspectRatios'] = [
                         'NaN' => [
                             'title' => 'LLL:EXT:lang/Resources/Private/Language/locallang_wizards.xlf:imwizard.ratio.free',

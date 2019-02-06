@@ -104,6 +104,18 @@ class CreateNeededCroppingsCommandController extends CommandController
                                 'selectedRatio' => $sizeConfiguration['width'] . ' x ' . $sizeConfiguration['height'],
                                 'focusArea' => null,
                             ];
+                        } elseif (isset($sizeConfiguration['allowedRatios'])) {
+                            $defaultRatio = array_shift(array_keys($sizeConfiguration['allowedRatios']));
+                            $cropConfiguration[$variantId] = [
+                                'cropArea' => $this->calculateCropArea(
+                                    (int)$fileReferenceRecord['width'],
+                                    (int)$fileReferenceRecord['height'],
+                                    (int)$sizeConfiguration['allowedRatios'][$defaultRatio]['width'],
+                                    (int)$sizeConfiguration['allowedRatios'][$defaultRatio]['height']
+                                ),
+                                'selectedRatio' => $defaultRatio,
+                                'focusArea' => null,
+                            ];
                         } else {
                             $cropConfiguration[$variantId] = [
                                 'cropArea' => [

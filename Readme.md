@@ -50,8 +50,19 @@ package.Smichaelsen\MelonImages {
                 phone {
                   # the title is omitted here and defaults to "Detail Phone" (derived from the name of the variant and the size)
                   breakpoints = phone
-                  width = 480
-                  height = 320
+                  # For the phone screen size 3:2 or 2:3 ratio is allowed
+                  allowedRatios {
+                    3by2 {
+                      title = 3:2
+                      width = 480
+                      height = 320                        
+                    }
+                    2by3 {
+                      title = 2:3
+                      width = 320
+                      height = 480                        
+                    }
+                  }
                 }
               }
             }
