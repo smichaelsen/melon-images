@@ -4,6 +4,7 @@ namespace Smichaelsen\MelonImages\ViewHelpers;
 
 use Smichaelsen\MelonImages\Service\ImageDataProvider;
 use TYPO3\CMS\Core\Resource\FileReference;
+use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Domain\Model\FileReference as ExtbaseFileReferenceModel;
 use TYPO3\CMS\Extbase\Object\ObjectManager;
@@ -40,7 +41,9 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
     public function render(): string
     {
         $fileReference = $this->arguments['fileReference'];
-        if ($fileReference instanceof ExtbaseFileReferenceModel) {
+        if (is_array($fileReference)) {
+            $fileReference = ResourceFactory::getInstance()->getFileReferenceObject($fileReference['uid']);
+        } elseif ($fileReference instanceof ExtbaseFileReferenceModel) {
             $fileReference = $fileReference->getOriginalResource();
         }
         if (!$fileReference instanceof FileReference) {
