@@ -20,7 +20,7 @@ class TcaUtility
             foreach ($tableConfiguration as $type => $fields) {
                 foreach ($fields as $fieldName => $fieldConfig) {
                     $variantIdPrefixParts = [$tableName, $type, $fieldName];
-                    $GLOBALS['TCA'][$tableName] = self::writeFieldConfigToTCA($GLOBALS['TCA'][$tableName], $type, $fieldName, $fieldConfig, $variantIdPrefixParts);
+                    $GLOBALS['TCA'][$tableName] = self::writeFieldConfigToTCA($GLOBALS['TCA'][$tableName], (string)$type, $fieldName, $fieldConfig, $variantIdPrefixParts);
                 }
             }
         }
