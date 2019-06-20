@@ -27,7 +27,7 @@ class CreateNeededCroppingsCommandController extends CommandController
         foreach ($this->loadCroppingConfiguration() as $tableName => $tableConfiguration) {
             foreach ($tableConfiguration as $type => $fields) {
                 foreach ($fields as $fieldName => $fieldConfig) {
-                    $tcaPath = [$tableName, $type, $fieldName];
+                    $tcaPath = [$tableName, (string)$type, $fieldName];
                     $this->createCroppingsForVariantsWithNestedRecords($tcaPath, $fieldConfig);
                 }
             }
