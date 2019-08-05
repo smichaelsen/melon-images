@@ -402,7 +402,7 @@ package.Smichaelsen\MelonImages.croppingConfiguration {
         # Field "image" holds the photo of a contact
         image {
           # variant "list" with one size "unisize"
-          list.sizes.unisize {
+          variants.list.sizes.unisize {
             width = 200
             height = 200
           }
