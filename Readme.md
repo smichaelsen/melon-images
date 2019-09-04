@@ -41,26 +41,24 @@ package.Smichaelsen\MelonImages {
             detail {
               sizes {
                 big {
-                  title = Detail Tablet & Desktop
                   breakpoints = tablet,desktop
                   width = 943
                   height = 419
                 }
 
                 phone {
-                  # the title is omitted here and defaults to "Detail Phone" (derived from the name of the variant and the size)
                   breakpoints = phone
                   # For the phone screen size 3:2 or 2:3 ratio is allowed
                   allowedRatios {
                     3by2 {
                       title = 3:2
                       width = 480
-                      height = 320                        
+                      height = 320
                     }
                     2by3 {
                       title = 2:3
                       width = 320
-                      height = 480                        
+                      height = 480
                     }
                   }
                 }
@@ -69,10 +67,17 @@ package.Smichaelsen\MelonImages {
 
             featured {
               sizes {
-                big {
-                  breakpoints = tablet,desktop
+                desktop {
+                  breakpoints = desktop
+                  width = 1280
+                  ratio = 16/9
+                }
+
+                # The desktop and tablet size share the same ratio and will therefore be grouped in the backend with the name "Featured 16/9"
+                tablet {
+                  breakpoints = tablet
                   width = 748
-                  height = 420
+                  ratio = 16/9
                 }
 
                 phone {
@@ -97,7 +102,7 @@ package.Smichaelsen\MelonImages {
                 }
               }
             }
-            
+
             square {
               title = Square for Open Graph
               sizes {
@@ -234,7 +239,7 @@ Example:
 
 ```
 package.Smichaelsen\MelonImages.pixelDensities = 1,2
-``` 
+```
 
 ### 3. Per Table and Type Configuration
 
@@ -329,10 +334,10 @@ package.Smichaelsen\MelonImages.croppingConfiguration.tx_news_domain_model_news.
 
 `package.Smichaelsen\MelonImages.croppingConfiguration.<table>.<recordType>.<fieldName>.variants.<variantName>.sizes.<sizeName>`
 
-`title` (optional): Title of the size that is shown to the backend user. Per default the variant name and size name is used. <br>
 `breakpoints` (optional): Comma separated list of breakpoint names (See *1. Breakpoints*) that this size is used for. If omitted the size will have no media query condition is used on all screens - recommended if you use only one size for the given variant. <br>
 `width` (optional): Width in pixels the image is rendered in. <br>
-`height` (optional): Height in pixels the image is rendered in.
+`height` (optional): Height in pixels the image is rendered in. <br>
+`ratio` (optional): If the ratio is given (in the x/y, e.g. 16/9) the width or the height may be omitted. The height can be calculated by width and ratio. The width can be calculated by height and ratio. If multiple sizes share the same ratios they are grouped in the backend so that the editor sets a single cropping for them. In the frontend they are still rendered as different sizes for different breakpoints.
 
 If you provide `width` and `height` it results in a fixed aspect ratio that is enforced in the backend cropping tool. Neat!
 
@@ -379,7 +384,7 @@ See the [TCA Reference](https://docs.typo3.org/typo3cms/TCAReference/ColumnsConf
 The position and dimensions of the focus area can be adjusted by the editor in the backend to mark the crucial area of the image.
 
 Setting a focus area will have no effect on the backend image processing or its rendering with the `melon:responsivePicture` ViewHelper.
-If you want to use this feature you need to take care of the frontend implementation.  
+If you want to use this feature you need to take care of the frontend implementation.
 
 Example:
 
