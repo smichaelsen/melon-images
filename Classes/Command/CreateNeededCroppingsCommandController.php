@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace Smichaelsen\MelonImages\Command;
 
+use Smichaelsen\MelonImages\TcaUtility;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Messaging\FlashMessageService;
@@ -90,28 +91,29 @@ class CreateNeededCroppingsCommandController extends CommandController
             }
             $cropConfiguration = json_decode($fileReferenceRecord['crop'], true) ?? [];
             foreach ($variants as $variant => $variantConfiguration) {
-                foreach ($variantConfiguration['sizes'] as $size => $sizeConfiguration) {
-                    $variantId = $variantIdPrefix . '__' . $variant . '__' . $size;
+                $aspectRatioConfigs = TcaUtility::getAspectRatiosFromSizes($variantConfiguration['sizes']);
+                foreach ($aspectRatioConfigs as $aspectRatioIdentifier => $aspectRatioConfig) {
+                    $variantId = $variantIdPrefix . '__' . $variant . '__' . $aspectRatioIdentifier;
                     if (!isset($cropConfiguration[$variantId])) {
-                        if (isset($sizeConfiguration['width'], $sizeConfiguration['height'])) {
+                        if (isset($aspectRatioConfig['width'], $aspectRatioConfig['height'])) {
                             $cropConfiguration[$variantId] = [
                                 'cropArea' => $this->calculateCropArea(
                                     (int)$fileReferenceRecord['width'],
                                     (int)$fileReferenceRecord['height'],
-                                    (int)$sizeConfiguration['width'],
-                                    (int)$sizeConfiguration['height']
+                                    (int)$aspectRatioConfig['width'],
+                                    (int)$aspectRatioConfig['height']
                                 ),
-                                'selectedRatio' => $sizeConfiguration['width'] . ' x ' . $sizeConfiguration['height'],
+                                'selectedRatio' => $aspectRatioConfig['width'] . ' x ' . $aspectRatioConfig['height'],
                                 'focusArea' => null,
                             ];
-                        } elseif (isset($sizeConfiguration['allowedRatios'])) {
-                            $defaultRatio = array_shift(array_keys($sizeConfiguration['allowedRatios']));
+                        } elseif (isset($aspectRatioConfig['allowedRatios'])) {
+                            $defaultRatio = array_shift(array_keys($aspectRatioConfig['allowedRatios']));
                             $cropConfiguration[$variantId] = [
                                 'cropArea' => $this->calculateCropArea(
                                     (int)$fileReferenceRecord['width'],
                                     (int)$fileReferenceRecord['height'],
-                                    (int)$sizeConfiguration['allowedRatios'][$defaultRatio]['width'],
-                                    (int)$sizeConfiguration['allowedRatios'][$defaultRatio]['height']
+                                    (int)$aspectRatioConfig['allowedRatios'][$defaultRatio]['width'],
+                                    (int)$aspectRatioConfig['allowedRatios'][$defaultRatio]['height']
                                 ),
                                 'selectedRatio' => $defaultRatio,
                                 'focusArea' => null,
