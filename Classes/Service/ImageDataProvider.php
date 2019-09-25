@@ -26,9 +26,14 @@ class ImageDataProvider implements SingletonInterface
         $this->imageService = $imageService;
     }
 
-    public function getImageVariantData(FileReference $fileReference, string $variant, $fallbackImageSize = null, $absolute = false): ?array
+    public function getImageVariantData(FileReference $fileReference, string $variant, $fallbackImageSize = null, $absolute = false, ?FileReference $useCroppingFrom = null): ?array
     {
-        $cropConfiguration = json_decode((string)$fileReference->getProperty('crop'), true);
+        if ($useCroppingFrom instanceof FileReference) {
+            $crop = $useCroppingFrom->getProperty('crop');
+        } else {
+            $crop = $fileReference->getProperty('crop');
+        }
+        $cropConfiguration = json_decode((string)$crop, true);
         if ($cropConfiguration === null) {
             return null;
         }
