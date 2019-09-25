@@ -175,6 +175,21 @@ The rendering looks something like this:
 <meta property="og:image:height" content="512" />
 ```
 
+## ViewHelper Reference
+
+### `\Smichaelsen\MelonImages\ViewHelpers\ResponsivePictureViewHelper`
+
+Arguments:
+
+* `fileReference`: Accepts a `\TYPO3\CMS\Core\Resource\FileReference`, a `\TYPO3\CMS\Extbase\Domain\Model\FileReference` or a `sys_file_reference`record array.
+* `variant`: Name of the variant to render. The names of variants are arbitrarily chosen in your TypoScript setup.
+* `fallbackImageSize`: If you have an image with multiple sizes, by the last one (order is determined by order in TypoScript) will be used as fallback, i.e. for browsers [that do not support srcset](https://caniuse.com/#feat=picture). Here you can specify which size to use as fallback.
+* `as`: The image data will be available with this Variable name for custom markup rendering.
+* `additionalImageAttributes`: Array of attributes that is applied to the `<img/>` tag.
+* `absolute`: Set to `true` if you want image URLs to be absolute.
+* `useCroppingFrom`: Here you can provide an additional FileReference that is used to crop the `fileReference`. Useful if you want to crop 2 images in exactly the same way. Accepts file references in the same form as `fileReference`.
+* Universal tag attributes (`class`, `id`, `title`, ...) are available to add attributes to the `<picture/>` tag.
+
 ## TypoScript Reference
 
 ### 1. Breakpoints
