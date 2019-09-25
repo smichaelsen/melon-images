@@ -36,6 +36,7 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         $this->registerArgument('as', 'string', 'Variable name for the picture data if you want to render with your own markup.', false, null);
         $this->registerArgument('additionalImageAttributes', 'array', 'Additional attributes to be applied to the img tag', false, []);
         $this->registerArgument('absolute', 'boolean', 'Generate absolute image URLs', false, false);
+        $this->registerArgument('useCroppingFrom', 'mixed', 'Alternative file reference as cropping source', false, null);
     }
 
     public function render(): string
@@ -49,10 +50,16 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         if (!$fileReference instanceof FileReference) {
             return '';
         }
+        $useCroppingFrom = $this->arguments['useCroppingFrom'];
+        if (is_array($useCroppingFrom)) {
+            $useCroppingFrom = ResourceFactory::getInstance()->getFileReferenceObject($useCroppingFrom['uid']);
+        } elseif ($useCroppingFrom instanceof ExtbaseFileReferenceModel) {
+            $useCroppingFrom = $useCroppingFrom->getOriginalResource();
+        }
 
         $variant = $this->arguments['variant'];
         $fallbackImageSize = $this->arguments['fallbackImageSize'];
-        $variantData = $this->imageDataProvider->getImageVariantData($fileReference, $variant, $fallbackImageSize, $this->arguments['absolute']);
+        $variantData = $this->imageDataProvider->getImageVariantData($fileReference, $variant, $fallbackImageSize, $this->arguments['absolute'], $useCroppingFrom);
 
         if ($this->arguments['as']) {
             $this->templateVariableContainer->add($this->arguments['as'], $variantData);
