@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace Smichaelsen\MelonImages\ViewHelpers;
 
+use Smichaelsen\MelonImages\Domain\Dto\Source;
 use Smichaelsen\MelonImages\Service\ImageDataProvider;
 use TYPO3\CMS\Core\Resource\FileReference;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
@@ -83,7 +84,8 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
             // auto render
             $tagContent = '';
             foreach ($variantData['sources'] as $source) {
-                $tagContent .= $this->renderSourceTag($source['srcsets'], $source['mediaQuery']);
+                /** @var Source $source */
+                $tagContent .= $source->getHtml();
             }
             $tagContent .= $this->renderImageTag(
                 $variantData['fallbackImage']['src'],
@@ -95,16 +97,6 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
 
         $this->tag->setContent($tagContent);
         return $this->tag->render();
-    }
-
-    protected function renderSourceTag(array $sourceSets, string $mediaQuery): string
-    {
-        $tag = new TagBuilder('source');
-        $tag->addAttribute('srcset', implode(', ', $sourceSets));
-        if (!empty($mediaQuery)) {
-            $tag->addAttribute('media', $mediaQuery);
-        }
-        return $tag->render();
     }
 
     protected function renderImageTag(string $src, string $alternative = '', string $title = null, array $additionalAttributes = []): string
