@@ -164,8 +164,8 @@ The rendering as responsive `<picture>` tag is not always desirable. You can als
 
 <melon:responsivePicture fileReference="{newsItem.falMedia.0}" variant="square" as="pictureData">
     <n:metaTag property="og:image" content="{pictureData.fallbackImage.src}" forceAbsoluteUrl="1" />
-    <n:metaTag property="og:image:width" content="{pictureData.fallbackImage.width}" />
-    <n:metaTag property="og:image:height" content="{pictureData.fallbackImage.height}" />
+    <n:metaTag property="og:image:width" content="{pictureData.fallbackImage.dimensions.width}" />
+    <n:metaTag property="og:image:height" content="{pictureData.fallbackImage.dimensions.height}" />
 </melon:responsivePicture>
 
 </html>
