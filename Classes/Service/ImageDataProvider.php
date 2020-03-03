@@ -52,12 +52,12 @@ class ImageDataProvider implements SingletonInterface
         /** @var string $fallbackCropVariantId */
         $fallbackCropVariantId = null;
         foreach ($cropVariantIds as $cropVariantId) {
-            $srcset = [];
             $sizeConfigurations = $this->getSizeConfigurations($cropVariantId);
             if (empty($sizeConfigurations)) {
                 continue;
             }
             foreach ($sizeConfigurations as $sizeIdentifier => $sizeConfiguration) {
+                $srcset = [];
                 foreach ($pixelDensities as $pixelDensity) {
                     $processingDimensions = $this->getProcessingWidthAndHeight(
                         $sizeConfiguration,
