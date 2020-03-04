@@ -95,7 +95,7 @@ class ImageDataProvider implements SingletonInterface
             return null;
         }
         $processingDimensions = $this->getProcessingWidthAndHeight(
-            current($this->getSizeConfigurations($fallbackCropVariantId)),
+            end($this->getSizeConfigurations($fallbackCropVariantId)),
             $matchingCropConfiguration[$fallbackCropVariantId]['selectedRatio']
         );
         $processedFallbackImage = $this->processImage(
