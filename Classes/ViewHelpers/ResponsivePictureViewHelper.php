@@ -49,7 +49,7 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         } elseif ($fileReference instanceof ExtbaseFileReferenceModel) {
             $fileReference = $fileReference->getOriginalResource();
         }
-        if (!$fileReference instanceof FileReference) {
+        if (!$fileReference instanceof FileReference || $fileReference->getPublicUrl() === null) {
             return '';
         }
         $useCroppingFrom = $this->arguments['useCroppingFrom'];
