@@ -30,7 +30,7 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
     {
         parent::initializeArguments();
         $this->registerUniversalTagAttributes();
-        $this->registerArgument('fileReference', 'mixed', 'File reference to render', true);
+        $this->registerArgument('fileReference', 'mixed', 'File reference to render (can be a core FileReference, an extbase FileReference, a sys_file_reference record array or the uid of a file reference)', true);
         $this->registerArgument('variant', 'string', 'Name of the image variant to use', true);
         $this->registerArgument('fallbackImageSize', 'string', 'Specify the size config to be used for the fallback image. Default is the last config.', false, null);
         $this->registerArgument('as', 'string', 'Variable name for the picture data if you want to render with your own markup.', false, null);
@@ -42,8 +42,10 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
     public function render(): string
     {
         $fileReference = $this->arguments['fileReference'];
-        if (is_array($fileReference)) {
-            $fileReference = ResourceFactory::getInstance()->getFileReferenceObject($fileReference['uid']);
+        if (is_numeric($fileReference)) {
+            $fileReference = ResourceFactory::getInstance()->getFileReferenceObject((int)$fileReference);
+        } elseif (is_array($fileReference)) {
+            $fileReference = ResourceFactory::getInstance()->getFileReferenceObject((int)$fileReference['uid']);
         } elseif ($fileReference instanceof ExtbaseFileReferenceModel) {
             $fileReference = $fileReference->getOriginalResource();
         }
