@@ -2,29 +2,29 @@
 declare(strict_types=1);
 namespace Smichaelsen\MelonImages;
 
-use TYPO3\CMS\Core\TypoScript\TypoScriptService;
+use Smichaelsen\MelonImages\Configuration\Registry;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
-use TYPO3\CMS\Extbase\Configuration\BackendConfigurationManager;
-use TYPO3\CMS\Extbase\Configuration\FrontendConfigurationManager;
 
 class TcaUtility
 {
-    public static function registerCropVariantsTcaFromTypoScript()
+    public static function registerCropVariantsTca(array $tca): array
     {
-        $packageTypoScriptSettings = self::loadPackageTypoScriptSettings();
-        if (empty($packageTypoScriptSettings)) {
-            return;
+        $configurationRegistry = GeneralUtility::makeInstance(Registry::class);
+        $configuration = $configurationRegistry->getParsedConfiguration();
+        if (empty($configuration)) {
+            return $tca;
         }
-        foreach ($packageTypoScriptSettings['croppingConfiguration'] as $tableName => $tableConfiguration) {
+        foreach ($configuration['croppingConfiguration'] as $tableName => $tableConfiguration) {
             foreach ($tableConfiguration as $type => $fields) {
                 foreach ($fields as $fieldName => $fieldConfig) {
                     $variantIdPrefixParts = [$tableName, $type, $fieldName];
-                    $GLOBALS['TCA'][$tableName] = self::writeFieldConfigToTCA($GLOBALS['TCA'][$tableName], (string)$type, $fieldName, $fieldConfig, $variantIdPrefixParts);
+                    $tca[$tableName] = self::writeFieldConfigToTCA($tca[$tableName], (string)$type, $fieldName, $fieldConfig, $variantIdPrefixParts);
                 }
             }
         }
+        return $tca;
     }
 
     protected static function writeFieldConfigToTCA(array $tableTca, string $type, string $fieldName, array $fieldConfig, array $variantIdPrefixParts): array
@@ -156,22 +156,5 @@ class TcaUtility
             }
         }
         return $cropVariantsTca;
-    }
-
-    protected static function loadPackageTypoScriptSettings(): array
-    {
-        if (TYPO3_MODE === 'BE') {
-            $configurationManager = GeneralUtility::makeInstance(BackendConfigurationManager::class);
-            $typoScript = $configurationManager->getTypoScriptSetup();
-        } elseif (TYPO3_MODE === 'FE') {
-            $configurationManager = GeneralUtility::makeInstance(FrontendConfigurationManager::class);
-            $typoScript = $configurationManager->getTypoScriptSetup();
-        }
-        if (empty($typoScript['package.']['Smichaelsen\\MelonImages.'])) {
-            return [];
-        }
-        return GeneralUtility::makeInstance(TypoScriptService::class)->convertTypoScriptArrayToPlainArray(
-            $typoScript['package.']['Smichaelsen\\MelonImages.']
-        );
     }
 }

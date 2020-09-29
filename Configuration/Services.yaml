@@ -1,0 +1,19 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  Smichaelsen\MelonImages\Command\CreateNeededCroppings:
+    tags:
+      - name: 'console.command'
+        command: 'melon_images:createNeededCroppings'
+
+  Smichaelsen\MelonImages\EventListener\AddCroppingConfigurationToTca:
+    tags:
+      - name: event.listener
+        identifier: 'MelonImagesAddCroppingConfigurationToTca'
+        event: TYPO3\CMS\Core\Configuration\Event\AfterTcaCompilationEvent
+
+  Smichaelsen\MelonImages\Service\ImageDataProvider:
+    public: true
