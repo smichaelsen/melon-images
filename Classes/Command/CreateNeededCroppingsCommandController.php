@@ -2,13 +2,12 @@
 declare(strict_types=1);
 namespace Smichaelsen\MelonImages\Command;
 
+use Smichaelsen\MelonImages\Configuration\Registry;
 use Smichaelsen\MelonImages\TcaUtility;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Messaging\FlashMessageService;
-use TYPO3\CMS\Core\TypoScript\TypoScriptService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Configuration\BackendConfigurationManager;
 use TYPO3\CMS\Extbase\Mvc\Controller\CommandController;
 
 class CreateNeededCroppingsCommandController extends CommandController
@@ -25,7 +24,9 @@ class CreateNeededCroppingsCommandController extends CommandController
 
     public function createNeededCroppingsCommand()
     {
-        foreach ($this->loadCroppingConfiguration() as $tableName => $tableConfiguration) {
+        $configurationRegistry = GeneralUtility::makeInstance(Registry::class);
+        $configuration = $configurationRegistry->getParsedConfiguration();
+        foreach ($configuration['croppingConfiguration'] as $tableName => $tableConfiguration) {
             foreach ($tableConfiguration as $type => $fields) {
                 foreach ($fields as $fieldName => $fieldConfig) {
                     $tcaPath = [$tableName, (string)$type, $fieldName];
@@ -229,18 +230,6 @@ class CreateNeededCroppingsCommandController extends CommandController
             $fieldTca = array_merge_recursive($fieldTca, $tableTca['types'][$type]['columnsOverrides'][$fieldName] ?? []);
         }
         return $fieldTca;
-    }
-
-    protected function loadCroppingConfiguration(): array
-    {
-        $configurationManager = GeneralUtility::makeInstance(BackendConfigurationManager::class);
-        $typoScript = $configurationManager->getTypoScriptSetup();
-        if (empty($typoScript['package.']['Smichaelsen\\MelonImages.']['croppingConfiguration.'])) {
-            return [];
-        }
-        return GeneralUtility::makeInstance(TypoScriptService::class)->convertTypoScriptArrayToPlainArray(
-            $typoScript['package.']['Smichaelsen\\MelonImages.']['croppingConfiguration.']
-        );
     }
 
     protected function addFlashMessage(string $message, int $severity)

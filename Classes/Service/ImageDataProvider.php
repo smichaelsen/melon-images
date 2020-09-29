@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace Smichaelsen\MelonImages\Service;
 
+use Smichaelsen\MelonImages\Configuration\Registry;
 use Smichaelsen\MelonImages\Domain\Dto\Dimensions;
 use Smichaelsen\MelonImages\Domain\Dto\Set;
 use Smichaelsen\MelonImages\Domain\Dto\Source;
@@ -10,12 +11,9 @@ use TYPO3\CMS\Core\Imaging\ImageManipulation\CropVariantCollection;
 use TYPO3\CMS\Core\Resource\FileReference;
 use TYPO3\CMS\Core\Resource\ProcessedFile;
 use TYPO3\CMS\Core\SingletonInterface;
-use TYPO3\CMS\Core\TypoScript\TypoScriptService;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
-use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
-use TYPO3\CMS\Extbase\Object\ObjectManager;
 use TYPO3\CMS\Extbase\Service\ImageService;
 
 class ImageDataProvider implements SingletonInterface
@@ -51,7 +49,7 @@ class ImageDataProvider implements SingletonInterface
         $cropVariantIds = array_keys($matchingCropConfiguration);
 
         $sources = [];
-        $pixelDensities = $this->getPixelDensitiesFromTypoScript();
+        $pixelDensities = $this->getPixelDensities();
         /** @var string $fallbackCropVariantId */
         $fallbackCropVariantId = null;
         foreach ($cropVariantIds as $cropVariantId) {
@@ -172,23 +170,23 @@ class ImageDataProvider implements SingletonInterface
         $segments = explode('__', $cropVariantId);
         $lastSegment = array_pop($segments);
         $variantIdentifier = array_pop($segments);
-        $typoscriptPath = implode('/', $segments);
-        if (empty($typoscriptPath)) {
+        $configurationPath = implode('/', $segments);
+        if (empty($configurationPath)) {
             return null;
         }
-        $variantTypoScriptConfiguration = $this->getMelonImagesConfigForTyposcriptPath($typoscriptPath)['variants'][$variantIdentifier] ?? null;
-        if (empty($variantTypoScriptConfiguration)) {
+        $variantConfiguration = $this->getCroppingConfigurationByPath($configurationPath)['variants'][$variantIdentifier] ?? null;
+        if (empty($variantConfiguration)) {
             return null;
         }
-        if (isset($variantTypoScriptConfiguration['sizes'][$lastSegment])) {
+        if (isset($variantConfiguration['sizes'][$lastSegment])) {
             // last segment is a size identifier: just return the config for the 1 matching size
             return [
-                $lastSegment => $variantTypoScriptConfiguration['sizes'][$lastSegment],
+                $lastSegment => $variantConfiguration['sizes'][$lastSegment],
             ];
         }
         // last segment should be a ratio identifier: return all matching size configurations
         $sizeConfigurations = [];
-        foreach ($variantTypoScriptConfiguration['sizes'] as $sizeIdentifier => $sizeConfiguration) {
+        foreach ($variantConfiguration['sizes'] as $sizeIdentifier => $sizeConfiguration) {
             if (isset($sizeConfiguration['ratio']) && $sizeConfiguration['ratio'] === $lastSegment) {
                 $sizeConfigurations[$sizeIdentifier] = $sizeConfiguration;
             }
@@ -196,35 +194,40 @@ class ImageDataProvider implements SingletonInterface
         return $sizeConfigurations;
     }
 
-    protected function getBreakpointsFromTypoScript(): array
+    protected function getBreakpoints(): array
     {
-        return (array)$this->getTypoScriptSettings()['breakpoints'];
-    }
-
-    protected function getPixelDensitiesFromTypoScript(): array
-    {
-        return GeneralUtility::trimExplode(',', (string)$this->getTypoScriptSettings()['pixelDensities'] ?? '1');
-    }
-
-    protected function getTypoScriptSettings(): array
-    {
-        static $typoScriptSettings;
-        if (!is_array($typoScriptSettings)) {
-            $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
-            $configurationManager = $objectManager->get(ConfigurationManagerInterface::class);
-            $typoscript = $configurationManager->getConfiguration(
-                ConfigurationManagerInterface::CONFIGURATION_TYPE_FULL_TYPOSCRIPT
-            );
-            $typoScriptSettings = GeneralUtility::makeInstance(TypoScriptService::class)->convertTypoScriptArrayToPlainArray(
-                $typoscript['package.']['Smichaelsen\MelonImages.'] ?? []
-            );
+        $breakpoints = $this->getConfiguration()['breakpoints'];
+        if (is_string($breakpoints)) {
+            $breakpoints = GeneralUtility::trimExplode(',', $breakpoints);
         }
-        return $typoScriptSettings;
+        return $breakpoints;
+    }
+
+    protected function getPixelDensities(): array
+    {
+        $pixelDensities = $this->getConfiguration()['pixelDensities'];
+        if (empty($pixelDensities)) {
+            return ['1'];
+        }
+        if (is_string($pixelDensities)) {
+            $pixelDensities = GeneralUtility::trimExplode(',', $pixelDensities);
+        }
+        return $pixelDensities;
+    }
+
+    protected function getConfiguration(): array
+    {
+        static $configuration;
+        if (!is_array($configuration)) {
+            $configurationRegistry = GeneralUtility::makeInstance(Registry::class);
+            $configuration = $configurationRegistry->getParsedConfiguration();
+        }
+        return $configuration;
     }
 
     protected function getMediaQueryFromSizeConfig(array $sizeConfiguration): string
     {
-        $breakpointsConfig = $this->getBreakpointsFromTypoScript();
+        $breakpointsConfig = $this->getBreakpoints();
         $breakpoints = [];
         foreach (GeneralUtility::trimExplode(',', $sizeConfiguration['breakpoints']) as $breakpointName) {
             $constraints = [];
@@ -245,22 +248,22 @@ class ImageDataProvider implements SingletonInterface
         return implode(', ', $breakpoints);
     }
 
-    protected function getMelonImagesConfigForTyposcriptPath(string $typoscriptPath): ?array
+    protected function getCroppingConfigurationByPath(string $configurationPath): ?array
     {
         static $melonConfigPerTcaPath = [];
-        if (!isset($melonConfigPerTcaPath[$typoscriptPath])) {
-            $typoScriptSettings = $this->getTypoScriptSettings();
+        if (!isset($melonConfigPerTcaPath[$configurationPath])) {
+            $configuration = $this->getConfiguration();
             try {
-                $melonConfigPerTcaPath[$typoscriptPath] = ArrayUtility::getValueByPath($typoScriptSettings['croppingConfiguration'], $typoscriptPath);
+                $melonConfigPerTcaPath[$configurationPath] = ArrayUtility::getValueByPath($configuration['croppingConfiguration'], $configurationPath);
             } catch (\RuntimeException $e) {
                 // path does not exist
                 if ($e->getCode() === 1341397869) {
-                    $melonConfigPerTcaPath[$typoscriptPath] = null;
+                    $melonConfigPerTcaPath[$configurationPath] = null;
                 } else {
                     throw $e;
                 }
             }
         }
-        return $melonConfigPerTcaPath[$typoscriptPath];
+        return $melonConfigPerTcaPath[$configurationPath];
     }
 }
