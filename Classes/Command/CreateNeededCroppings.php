@@ -2,30 +2,39 @@
 declare(strict_types=1);
 namespace Smichaelsen\MelonImages\Command;
 
+use Smichaelsen\MelonImages\Configuration\Registry;
 use Smichaelsen\MelonImages\TcaUtility;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Messaging\FlashMessageService;
-use TYPO3\CMS\Core\TypoScript\TypoScriptService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Configuration\BackendConfigurationManager;
-use TYPO3\CMS\Extbase\Mvc\Controller\CommandController;
 
-class CreateNeededCroppingsCommandController extends CommandController
+class CreateNeededCroppings extends Command
 {
     /**
      * @var FlashMessageService
      */
     protected $flashMessageService;
 
-    public function __construct(FlashMessageService $flashMessageService)
+    protected function configure()
     {
-        $this->flashMessageService = $flashMessageService;
+        $this->setDescription('Creates default cropping configuration where it is missing for image fields configured for MelonImages');
     }
 
-    public function createNeededCroppingsCommand()
+    public function __construct(string $name = null)
     {
-        foreach ($this->loadCroppingConfiguration() as $tableName => $tableConfiguration) {
+        parent::__construct($name);
+        $this->flashMessageService = GeneralUtility::makeInstance(FlashMessageService::class);
+    }
+
+    public function execute(InputInterface $input, OutputInterface $output): int
+    {
+        $configurationRegistry = GeneralUtility::makeInstance(Registry::class);
+        $configuration = $configurationRegistry->getParsedConfiguration();
+        foreach ($configuration['croppingConfiguration'] as $tableName => $tableConfiguration) {
             foreach ($tableConfiguration as $type => $fields) {
                 foreach ($fields as $fieldName => $fieldConfig) {
                     $tcaPath = [$tableName, (string)$type, $fieldName];
@@ -33,6 +42,7 @@ class CreateNeededCroppingsCommandController extends CommandController
                 }
             }
         }
+        return 0;
     }
 
     protected function createCroppingsForVariantsWithNestedRecords(array $tcaPath, array $fieldConfig)
@@ -107,7 +117,8 @@ class CreateNeededCroppingsCommandController extends CommandController
                                 'focusArea' => null,
                             ];
                         } elseif (isset($aspectRatioConfig['allowedRatios'])) {
-                            $defaultRatio = array_shift(array_keys($aspectRatioConfig['allowedRatios']));
+                            $ratioKeys = array_keys($aspectRatioConfig['allowedRatios']);
+                            $defaultRatio = array_shift($ratioKeys);
                             $cropConfiguration[$variantId] = [
                                 'cropArea' => $this->calculateCropArea(
                                     (int)$fileReferenceRecord['width'],
@@ -229,18 +240,6 @@ class CreateNeededCroppingsCommandController extends CommandController
             $fieldTca = array_merge_recursive($fieldTca, $tableTca['types'][$type]['columnsOverrides'][$fieldName] ?? []);
         }
         return $fieldTca;
-    }
-
-    protected function loadCroppingConfiguration(): array
-    {
-        $configurationManager = GeneralUtility::makeInstance(BackendConfigurationManager::class);
-        $typoScript = $configurationManager->getTypoScriptSetup();
-        if (empty($typoScript['package.']['Smichaelsen\\MelonImages.']['croppingConfiguration.'])) {
-            return [];
-        }
-        return GeneralUtility::makeInstance(TypoScriptService::class)->convertTypoScriptArrayToPlainArray(
-            $typoScript['package.']['Smichaelsen\\MelonImages.']['croppingConfiguration.']
-        );
     }
 
     protected function addFlashMessage(string $message, int $severity)
