@@ -437,6 +437,11 @@ You can nest this configuration as deep as you need it to be.
 
 ## Breaking Changes
 
+### From 1.x to 2.x
+
+If you're using custom markup to output your image the width and height are now enclosed in a `\Smichaelsen\MelonImages\Domain\Dto\Dimensions` object.
+In practice this means you will have to change `fallbackImageData.width` to `fallbackImageData.dimensions.width`.
+
 ### From 0.8 to 0.9
 
 With upgrading you will lose all cropping information. You need to crop the images again the backend.
