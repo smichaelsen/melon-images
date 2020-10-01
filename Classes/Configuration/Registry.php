@@ -11,7 +11,7 @@ class Registry implements SingletonInterface
     /**
      * @var string[]
      */
-    protected $configurationFiles;
+    protected $configurationFiles = [];
 
     public function registerConfigurationFile(string $configurationFilePath): void
     {
