@@ -229,7 +229,10 @@ class ImageDataProvider implements SingletonInterface
     {
         $breakpointsConfig = $this->getBreakpoints();
         $breakpoints = [];
-        foreach (GeneralUtility::trimExplode(',', $sizeConfiguration['breakpoints']) as $breakpointName) {
+        if (!is_array($sizeConfiguration['breakpoints'])) {
+            $sizeConfiguration['breakpoints'] = GeneralUtility::trimExplode(',', $sizeConfiguration['breakpoints']);
+        }
+        foreach ($sizeConfiguration['breakpoints'] as $breakpointName) {
             $constraints = [];
             if ($breakpointsConfig[$breakpointName]['from']) {
                 $constraints[] = '(min-width: ' . $breakpointsConfig[$breakpointName]['from'] . 'px)';
