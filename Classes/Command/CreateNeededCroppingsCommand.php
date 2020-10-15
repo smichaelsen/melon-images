@@ -4,22 +4,37 @@ namespace Smichaelsen\MelonImages\Command;
 
 use Smichaelsen\MelonImages\Configuration\Registry;
 use Smichaelsen\MelonImages\TcaUtility;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Messaging\FlashMessageService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Mvc\Controller\CommandController;
 
-class CreateNeededCroppingsCommandController extends CommandController
+class CreateNeededCroppingsCommand extends Command
 {
     /**
      * @var FlashMessageService
      */
     protected $flashMessageService;
 
+    protected function configure()
+    {
+        $this->setDescription('Create the needed cropping for the images');
+    }
+
     public function __construct(FlashMessageService $flashMessageService)
     {
         $this->flashMessageService = $flashMessageService;
+        parent::__construct();
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        $this->createNeededCroppingsCommand();
+
+        return 0;
     }
 
     public function createNeededCroppingsCommand()
