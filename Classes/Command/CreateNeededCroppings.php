@@ -4,25 +4,33 @@ namespace Smichaelsen\MelonImages\Command;
 
 use Smichaelsen\MelonImages\Configuration\Registry;
 use Smichaelsen\MelonImages\TcaUtility;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Messaging\FlashMessageService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Mvc\Controller\CommandController;
 
-class CreateNeededCroppingsCommandController extends CommandController
+class CreateNeededCroppings extends Command
 {
     /**
      * @var FlashMessageService
      */
     protected $flashMessageService;
 
-    public function __construct(FlashMessageService $flashMessageService)
+    protected function configure()
     {
-        $this->flashMessageService = $flashMessageService;
+        $this->setDescription('Creates default cropping configuration where it is missing for image fields configured for MelonImages');
     }
 
-    public function createNeededCroppingsCommand()
+    public function __construct(string $name = null)
+    {
+        parent::__construct($name);
+        $this->flashMessageService = GeneralUtility::makeInstance(FlashMessageService::class);
+    }
+
+    public function execute(InputInterface $input, OutputInterface $output): int
     {
         $configurationRegistry = GeneralUtility::makeInstance(Registry::class);
         $configuration = $configurationRegistry->getParsedConfiguration();
@@ -34,6 +42,7 @@ class CreateNeededCroppingsCommandController extends CommandController
                 }
             }
         }
+        return 0;
     }
 
     protected function createCroppingsForVariantsWithNestedRecords(array $tcaPath, array $fieldConfig)
@@ -108,7 +117,8 @@ class CreateNeededCroppingsCommandController extends CommandController
                                 'focusArea' => null,
                             ];
                         } elseif (isset($aspectRatioConfig['allowedRatios'])) {
-                            $defaultRatio = array_shift(array_keys($aspectRatioConfig['allowedRatios']));
+                            $ratioKeys = array_keys($aspectRatioConfig['allowedRatios']);
+                            $defaultRatio = array_shift($ratioKeys);
                             $cropConfiguration[$variantId] = [
                                 'cropArea' => $this->calculateCropArea(
                                     (int)$fileReferenceRecord['width'],

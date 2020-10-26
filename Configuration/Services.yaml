@@ -1,0 +1,10 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  Smichaelsen\MelonImages\Command\CreateNeededCroppings:
+    tags:
+      - name: 'console.command'
+        command: 'melon_images:createNeededCroppings'
