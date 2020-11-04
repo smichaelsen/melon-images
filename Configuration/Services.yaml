@@ -8,3 +8,6 @@ services:
     tags:
       - name: 'console.command'
         command: 'melon_images:createNeededCroppings'
+
+  Smichaelsen\MelonImages\Service\ImageDataProvider:
+    public: true
