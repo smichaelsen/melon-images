@@ -134,14 +134,14 @@ class ImageDataProvider implements SingletonInterface
 
     protected function getProcessingWidthAndHeight(array $sizeConfiguration, string $selectedRatio, float $pixelDensity = 1.0): Dimensions
     {
-        if (isset($sizeConfiguration['ratio'])) {
-            $calculatedRatio = MathUtility::calculateWithParentheses($sizeConfiguration['ratio']);
-        }
-
         if (!empty($selectedRatio) && isset($sizeConfiguration['allowedRatios'], $sizeConfiguration['allowedRatios'][$selectedRatio])) {
             $dimensions = $sizeConfiguration['allowedRatios'][$selectedRatio];
         } else {
             $dimensions = $sizeConfiguration;
+        }
+
+        if (isset($dimensions['ratio'])) {
+            $calculatedRatio = MathUtility::calculateWithParentheses($dimensions['ratio']);
         }
 
         if (isset($dimensions['width']) && isset($calculatedRatio) && empty($dimensions['height'])) {
@@ -149,7 +149,7 @@ class ImageDataProvider implements SingletonInterface
             $dimensions['height'] = round($dimensions['width'] / $calculatedRatio);
         } elseif (isset($dimensions['height']) && isset($calculatedRatio) && empty($dimensions['width'])) {
             // derive width from height and ratio
-            $dimensions['width'] = round($dimensions['width'] * $calculatedRatio);
+            $dimensions['width'] = round($dimensions['height'] * $calculatedRatio);
         }
 
         if (isset($dimensions['width'])) {
