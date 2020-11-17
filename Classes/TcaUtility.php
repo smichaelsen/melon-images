@@ -3,9 +3,9 @@ declare(strict_types=1);
 namespace Smichaelsen\MelonImages;
 
 use Smichaelsen\MelonImages\Configuration\Registry;
+use Smichaelsen\MelonImages\Domain\Dto\Dimensions;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Utility\MathUtility;
 
 class TcaUtility
 {
@@ -85,18 +85,19 @@ class TcaUtility
     {
         $aspectRatios = [];
         foreach ($sizes as $sizeIdentifier => $sizeConfig) {
-            if (isset($sizeConfig['ratio'])) {
-                $identifier = $sizeConfig['ratio'];
-                $calculatedRatio = MathUtility::calculateWithParentheses($sizeConfig['ratio']);
-            } else {
-                $identifier = $sizeIdentifier;
+            $identifier = $sizeConfig['ratio'] ?? $sizeIdentifier;
+            if (!isset($sizeConfig['allowedRatios']) && (isset($sizeConfig['width']) || isset($sizeConfig['height']))) {
+                $ratioIdentifier = $sizeConfig['title'] ?? $sizeConfig['ratio'] ?? ($sizeConfig['width'] . ' x ' . $sizeConfig['height']);
+                $sizeConfig = [
+                    'allowedRatios' => [
+                        $ratioIdentifier => $sizeConfig,
+                    ],
+                ];
             }
-            if (isset($sizeConfig['width']) && isset($calculatedRatio) && empty($sizeConfig['height'])) {
-                // derive height from width and ratio
-                $sizeConfig['height'] = round($sizeConfig['width'] / $calculatedRatio);
-            } elseif (isset($sizeConfig['height']) && isset($calculatedRatio) && empty($sizeConfig['width'])) {
-                // derive width from height and ratio
-                $sizeConfig['width'] = round($sizeConfig['width'] * $calculatedRatio);
+            foreach ($sizeConfig['allowedRatios'] as $allowedRatioKey => $allowedRatioConfig) {
+                $dimensions = new Dimensions($allowedRatioConfig['width'], $allowedRatioConfig['height'], $allowedRatioConfig['ratio']);
+                $sizeConfig['allowedRatios'][$allowedRatioKey]['width'] = $dimensions->getWidth();
+                $sizeConfig['allowedRatios'][$allowedRatioKey]['height'] = $dimensions->getHeight();
             }
             $aspectRatios[$identifier] = $sizeConfig;
         }
@@ -124,13 +125,6 @@ class TcaUtility
                 ];
                 $cropVariantsTca[$cropVariantKey]['allowedAspectRatios'] = [];
 
-                if (isset($aspectRatioConfig['width'], $aspectRatioConfig['height'])) {
-                    $ratio = $aspectRatioConfig['ratio'] ?? ($aspectRatioConfig['width'] . ' x ' . $aspectRatioConfig['height']);
-                    $cropVariantsTca[$cropVariantKey]['allowedAspectRatios'][$ratio] = [
-                        'title' => $ratio,
-                        'value' => $aspectRatioConfig['width'] / $aspectRatioConfig['height'],
-                    ];
-                }
                 if (isset($aspectRatioConfig['allowedRatios']) && count($aspectRatioConfig['allowedRatios']) > 0) {
                     foreach ($aspectRatioConfig['allowedRatios'] as $dimensionKey => $dimensionConfig) {
                         $cropVariantsTca[$cropVariantKey]['allowedAspectRatios'][$dimensionKey] = [

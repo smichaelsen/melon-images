@@ -123,46 +123,18 @@ class ImageDataProvider implements SingletonInterface
         $processingInstructions = [
             'crop' => $cropArea,
         ];
-        if ($dimensions->getWidth() !== null) {
-            $processingInstructions['width'] = $dimensions->getWidth();
-        }
-        if ($dimensions->getHeight() !== null) {
-            $processingInstructions['height'] = $dimensions->getHeight();
-        }
+        $processingInstructions['width'] = $dimensions->getWidth();
+        $processingInstructions['height'] = $dimensions->getHeight();
         return $this->imageService->applyProcessingInstructions($fileReference, $processingInstructions);
     }
 
     protected function getProcessingWidthAndHeight(array $sizeConfiguration, string $selectedRatio, float $pixelDensity = 1.0): Dimensions
     {
-        if (isset($sizeConfiguration['ratio'])) {
-            $calculatedRatio = MathUtility::calculateWithParentheses($sizeConfiguration['ratio']);
-        }
-
         if (!empty($selectedRatio) && isset($sizeConfiguration['allowedRatios'], $sizeConfiguration['allowedRatios'][$selectedRatio])) {
-            $dimensions = $sizeConfiguration['allowedRatios'][$selectedRatio];
-        } else {
-            $dimensions = $sizeConfiguration;
+            $sizeConfiguration = $sizeConfiguration['allowedRatios'][$selectedRatio];
         }
-
-        if (isset($dimensions['width']) && isset($calculatedRatio) && empty($dimensions['height'])) {
-            // derive height from width and ratio
-            $dimensions['height'] = round($dimensions['width'] / $calculatedRatio);
-        } elseif (isset($dimensions['height']) && isset($calculatedRatio) && empty($dimensions['width'])) {
-            // derive width from height and ratio
-            $dimensions['width'] = round($dimensions['width'] * $calculatedRatio);
-        }
-
-        if (isset($dimensions['width'])) {
-            $width = (int)round(($dimensions['width'] * $pixelDensity));
-        } else {
-            $width = null;
-        }
-        if (isset($dimensions['height'])) {
-            $height = (int)round(($dimensions['height'] * $pixelDensity));
-        } else {
-            $height = null;
-        }
-        return new Dimensions($width, $height);
+        $dimensions = new Dimensions($sizeConfiguration['width'], $sizeConfiguration['height'], $sizeConfiguration['ratio']);
+        return $dimensions->scale($pixelDensity);
     }
 
     protected function getSizeConfigurations(string $cropVariantId): ?array
