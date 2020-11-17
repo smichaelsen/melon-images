@@ -3,25 +3,63 @@ declare(strict_types=1);
 
 namespace Smichaelsen\MelonImages\Domain\Dto;
 
+use TYPO3\CMS\Core\Utility\MathUtility;
+
 class Dimensions
 {
-    protected $height = null;
+    /**
+     * @var float
+     */
+    protected $height;
 
-    protected $width = null;
+    /**
+     * @var float
+     */
+    protected $ratio;
 
-    public function __construct(?int $width, ?int $height)
+    /**
+     * @var float
+     */
+    protected $width;
+
+    public function __construct(?float $width, ?float $height, $ratio = null)
     {
+        if (is_string($ratio)) {
+            $ratio = (float)MathUtility::calculateWithParentheses($ratio);
+        }
+
+        if ($height !== null && $ratio !== null && $width === null) {
+            $width = $height * $ratio;
+        }
+        if ($height !== null && $ratio === null && $width !== null) {
+            $ratio = $width / $height;
+        }
+        if ($height === null && $ratio !== null && $width !== null) {
+            $height = $width / $ratio;
+        }
+
         $this->height = $height;
+        $this->ratio = $ratio;
         $this->width = $width;
     }
 
-    public function getHeight(): ?int
+    public function getHeight(): float
     {
         return $this->height;
     }
 
-    public function getWidth(): ?int
+    public function getRatio(): float
+    {
+        return $this->ratio;
+    }
+
+    public function getWidth(): float
     {
         return $this->width;
+    }
+
+    public function scale(float $factor): Dimensions
+    {
+        return new Dimensions($this->width * $factor, $this->height * $factor);
     }
 }

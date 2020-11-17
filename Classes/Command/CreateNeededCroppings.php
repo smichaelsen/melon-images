@@ -11,6 +11,7 @@ use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Messaging\FlashMessageService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\MathUtility;
 
 class CreateNeededCroppings extends Command
 {
@@ -105,26 +106,14 @@ class CreateNeededCroppings extends Command
                 foreach ($aspectRatioConfigs as $aspectRatioIdentifier => $aspectRatioConfig) {
                     $variantId = $variantIdPrefix . '__' . $variant . '__' . $aspectRatioIdentifier;
                     if (!isset($cropConfiguration[$variantId])) {
-                        if (isset($aspectRatioConfig['width'], $aspectRatioConfig['height'])) {
-                            $cropConfiguration[$variantId] = [
-                                'cropArea' => $this->calculateCropArea(
-                                    (int)$fileReferenceRecord['width'],
-                                    (int)$fileReferenceRecord['height'],
-                                    (int)$aspectRatioConfig['width'],
-                                    (int)$aspectRatioConfig['height']
-                                ),
-                                'selectedRatio' => $aspectRatioConfig['width'] . ' x ' . $aspectRatioConfig['height'],
-                                'focusArea' => null,
-                            ];
-                        } elseif (isset($aspectRatioConfig['allowedRatios'])) {
+                        if (isset($aspectRatioConfig['allowedRatios'])) {
                             $ratioKeys = array_keys($aspectRatioConfig['allowedRatios']);
                             $defaultRatio = array_shift($ratioKeys);
                             $cropConfiguration[$variantId] = [
                                 'cropArea' => $this->calculateCropArea(
                                     (int)$fileReferenceRecord['width'],
                                     (int)$fileReferenceRecord['height'],
-                                    (int)$aspectRatioConfig['allowedRatios'][$defaultRatio]['width'],
-                                    (int)$aspectRatioConfig['allowedRatios'][$defaultRatio]['height']
+                                    (float)MathUtility::calculateWithParentheses($aspectRatioConfig['allowedRatios'][$defaultRatio]['ratio'])
                                 ),
                                 'selectedRatio' => $defaultRatio,
                                 'focusArea' => null,
@@ -218,10 +207,9 @@ class CreateNeededCroppings extends Command
         return [];
     }
 
-    protected function calculateCropArea(int $fileWidth, int $fileHeight, int $croppingWidth, int $croppingHeight): array
+    protected function calculateCropArea(int $fileWidth, int $fileHeight, float $croppingRatio): array
     {
         $fileRatio = $fileWidth / $fileHeight;
-        $croppingRatio = $croppingWidth / $croppingHeight;
         $croppedHeightValue = min(1, $fileRatio / $croppingRatio);
         $croppedWidthValue = min(1, $croppingRatio / $fileRatio);
         return [
