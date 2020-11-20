@@ -110,8 +110,7 @@ class CreateNeededCroppings extends Command
                                 'cropArea' => $this->calculateCropArea(
                                     (int)$fileReferenceRecord['width'],
                                     (int)$fileReferenceRecord['height'],
-                                    (int)$aspectRatioConfig['width'],
-                                    (int)$aspectRatioConfig['height']
+                                    (int)$aspectRatioConfig['width'] / (int)$aspectRatioConfig['height'],
                                 ),
                                 'selectedRatio' => $aspectRatioConfig['width'] . ' x ' . $aspectRatioConfig['height'],
                                 'focusArea' => null,
@@ -123,8 +122,7 @@ class CreateNeededCroppings extends Command
                                 'cropArea' => $this->calculateCropArea(
                                     (int)$fileReferenceRecord['width'],
                                     (int)$fileReferenceRecord['height'],
-                                    (int)$aspectRatioConfig['allowedRatios'][$defaultRatio]['width'],
-                                    (int)$aspectRatioConfig['allowedRatios'][$defaultRatio]['height']
+                                    (float)$aspectRatioConfig['allowedRatios'][$defaultRatio]['ratio']
                                 ),
                                 'selectedRatio' => $defaultRatio,
                                 'focusArea' => null,
@@ -218,10 +216,9 @@ class CreateNeededCroppings extends Command
         return [];
     }
 
-    protected function calculateCropArea(int $fileWidth, int $fileHeight, int $croppingWidth, int $croppingHeight): array
+    protected function calculateCropArea(int $fileWidth, int $fileHeight, float $croppingRatio): array
     {
         $fileRatio = $fileWidth / $fileHeight;
-        $croppingRatio = $croppingWidth / $croppingHeight;
         $croppedHeightValue = min(1, $fileRatio / $croppingRatio);
         $croppedWidthValue = min(1, $croppingRatio / $fileRatio);
         return [
