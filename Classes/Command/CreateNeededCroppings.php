@@ -11,6 +11,7 @@ use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Messaging\FlashMessageService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\MathUtility;
 
 class CreateNeededCroppings extends Command
 {
@@ -122,7 +123,7 @@ class CreateNeededCroppings extends Command
                                 'cropArea' => $this->calculateCropArea(
                                     (int)$fileReferenceRecord['width'],
                                     (int)$fileReferenceRecord['height'],
-                                    (float)$aspectRatioConfig['allowedRatios'][$defaultRatio]['ratio']
+                                    (float)MathUtility::calculateWithParentheses($aspectRatioConfig['allowedRatios'][$defaultRatio]['ratio'])
                                 ),
                                 'selectedRatio' => $defaultRatio,
                                 'focusArea' => null,
