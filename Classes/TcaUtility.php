@@ -9,21 +9,22 @@ use TYPO3\CMS\Core\Utility\MathUtility;
 
 class TcaUtility
 {
-    public static function registerCropVariantsTca()
+    public static function registerCropVariantsTca(array $tca): array
     {
         $configurationRegistry = GeneralUtility::makeInstance(Registry::class);
         $configuration = $configurationRegistry->getParsedConfiguration();
         if (empty($configuration)) {
-            return;
+            return $tca;
         }
         foreach ($configuration['croppingConfiguration'] as $tableName => $tableConfiguration) {
             foreach ($tableConfiguration as $type => $fields) {
                 foreach ($fields as $fieldName => $fieldConfig) {
                     $variantIdPrefixParts = [$tableName, $type, $fieldName];
-                    $GLOBALS['TCA'][$tableName] = self::writeFieldConfigToTCA($GLOBALS['TCA'][$tableName], (string)$type, $fieldName, $fieldConfig, $variantIdPrefixParts);
+                    $tca[$tableName] = self::writeFieldConfigToTCA($tca[$tableName], (string)$type, $fieldName, $fieldConfig, $variantIdPrefixParts);
                 }
             }
         }
+        return $tca;
     }
 
     protected static function writeFieldConfigToTCA(array $tableTca, string $type, string $fieldName, array $fieldConfig, array $variantIdPrefixParts): array
