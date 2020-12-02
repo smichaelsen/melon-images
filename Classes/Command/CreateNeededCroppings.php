@@ -106,17 +106,7 @@ class CreateNeededCroppings extends Command
                 foreach ($aspectRatioConfigs as $aspectRatioIdentifier => $aspectRatioConfig) {
                     $variantId = $variantIdPrefix . '__' . $variant . '__' . $aspectRatioIdentifier;
                     if (!isset($cropConfiguration[$variantId])) {
-                        if (isset($aspectRatioConfig['width'], $aspectRatioConfig['height'])) {
-                            $cropConfiguration[$variantId] = [
-                                'cropArea' => $this->calculateCropArea(
-                                    (int)$fileReferenceRecord['width'],
-                                    (int)$fileReferenceRecord['height'],
-                                    (int)$aspectRatioConfig['width'] / (int)$aspectRatioConfig['height'],
-                                ),
-                                'selectedRatio' => $aspectRatioConfig['width'] . ' x ' . $aspectRatioConfig['height'],
-                                'focusArea' => null,
-                            ];
-                        } elseif (isset($aspectRatioConfig['allowedRatios'])) {
+                        if (isset($aspectRatioConfig['allowedRatios'])) {
                             $ratioKeys = array_keys($aspectRatioConfig['allowedRatios']);
                             $defaultRatio = array_shift($ratioKeys);
                             $cropConfiguration[$variantId] = [
