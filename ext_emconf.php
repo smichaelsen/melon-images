@@ -2,7 +2,7 @@
 
 $EM_CONF[$_EXTKEY] = [
     'title' => 'Melon Images',
-    'description' => 'Responsive Images Management for TYPO3 8.7',
+    'description' => 'Responsive Images Management',
     'category' => 'plugin',
     'author' => 'Sebastian Michaelsen',
     'author_email' => 'sebastian@michaelsen.io',
