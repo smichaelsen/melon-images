@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace Smichaelsen\MelonImages\ViewHelpers;
 
+use Smichaelsen\MelonImages\Domain\Dto\Dimensions;
 use Smichaelsen\MelonImages\Domain\Dto\Source;
 use Smichaelsen\MelonImages\Service\ImageDataProvider;
 use TYPO3\CMS\Core\Resource\FileReference;
@@ -82,6 +83,15 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
             );
         } else {
             // auto render
+
+            $additionalAttributes = (array)$this->arguments['additionalImageAttributes'];
+            if (!isset($additionalAttributes['width']) && !isset($additionalAttributes['height'])) {
+                /** @var Dimensions $dimensions */
+                $dimensions = $variantData['fallbackImage']['dimensions'];
+                $additionalAttributes['width'] = (int)round($dimensions->getWidth());
+                $additionalAttributes['height'] = (int)round($dimensions->getHeight());
+            }
+
             $tagContent = '';
             foreach ($variantData['sources'] as $source) {
                 /** @var Source $source */
@@ -91,7 +101,7 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
                 $variantData['fallbackImage']['src'],
                 (string)$fileReference->getAlternative(),
                 (string)$fileReference->getTitle(),
-                $this->arguments['additionalImageAttributes']
+                $additionalAttributes
             );
         }
 
