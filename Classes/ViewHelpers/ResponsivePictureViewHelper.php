@@ -34,11 +34,11 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         $this->registerUniversalTagAttributes();
         $this->registerArgument('fileReference', 'mixed', 'File reference to render (can be a core FileReference, an extbase FileReference, a sys_file_reference record array or the uid of a file reference)', true);
         $this->registerArgument('variant', 'string', 'Name of the image variant to use', true);
-        $this->registerArgument('fallbackImageSize', 'string', 'Specify the size config to be used for the fallback image. Default is the last config.', false, null);
-        $this->registerArgument('as', 'string', 'Variable name for the picture data if you want to render with your own markup.', false, null);
+        $this->registerArgument('fallbackImageSize', 'string', 'Specify the size config to be used for the fallback image. Default is the last config.', false);
+        $this->registerArgument('as', 'string', 'Variable name for the picture data if you want to render with your own markup.', false);
         $this->registerArgument('additionalImageAttributes', 'array', 'Additional attributes to be applied to the img tag', false, []);
         $this->registerArgument('absolute', 'boolean', 'Generate absolute image URLs', false, false);
-        $this->registerArgument('useCroppingFrom', 'mixed', 'Alternative file reference as cropping source', false, null);
+        $this->registerArgument('useCroppingFrom', 'mixed', 'Alternative file reference as cropping source', false);
     }
 
     public function render(): string
