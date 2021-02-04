@@ -3,6 +3,7 @@ declare(strict_types=1);
 namespace Smichaelsen\MelonImages\Command;
 
 use Smichaelsen\MelonImages\Configuration\Registry;
+use Smichaelsen\MelonImages\Domain\Dto\Dimensions;
 use Smichaelsen\MelonImages\TcaUtility;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -11,7 +12,6 @@ use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Messaging\FlashMessageService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Utility\MathUtility;
 
 class CreateNeededCroppings extends Command
 {
@@ -109,11 +109,13 @@ class CreateNeededCroppings extends Command
                         if (isset($aspectRatioConfig['allowedRatios'])) {
                             $ratioKeys = array_keys($aspectRatioConfig['allowedRatios']);
                             $defaultRatio = array_shift($ratioKeys);
+                            $allowedRatioConfig = $aspectRatioConfig['allowedRatios'][$defaultRatio];
+                            $dimensions = new Dimensions($allowedRatioConfig['width'], $allowedRatioConfig['height'], $allowedRatioConfig['ratio']);
                             $cropConfiguration[$variantId] = [
                                 'cropArea' => $this->calculateCropArea(
                                     (int)$fileReferenceRecord['width'],
                                     (int)$fileReferenceRecord['height'],
-                                    (float)MathUtility::calculateWithParentheses($aspectRatioConfig['allowedRatios'][$defaultRatio]['ratio'])
+                                    $dimensions->getRatio()
                                 ),
                                 'selectedRatio' => $defaultRatio,
                                 'focusArea' => null,
