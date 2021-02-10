@@ -11,7 +11,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Messaging\FlashMessageService;
+use TYPO3\CMS\Core\Resource\FileRepository;
+use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Service\ImageService;
+use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 
 class CreateNeededCroppings extends Command
 {
@@ -83,20 +87,29 @@ class CreateNeededCroppings extends Command
         }
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file_reference');
         $queryBuilder
-            ->select('sys_file_reference.uid', 'sys_file_reference.crop', 'sys_file_metadata.width', 'sys_file_metadata.height')
-            ->from('sys_file_reference')
+            ->select('ref.uid', 'ref.crop', 'file.extension', 'file.uid as fileUid', 'metadata.width', 'metadata.height')
+            ->from('sys_file_reference', 'ref')
             ->join(
-                'sys_file_reference',
+                'ref',
                 'sys_file_metadata',
-                'sys_file_metadata',
-                'sys_file_metadata.file = sys_file_reference.uid_local'
+                'metadata',
+                'metadata.file = ref.uid_local'
+            )
+            ->join(
+                'ref',
+                'sys_file',
+                'file',
+                'ref.uid_local = file.uid'
             )
             ->where(
-                $queryBuilder->expr()->in('sys_file_reference.uid', $foreignUids)
+                $queryBuilder->expr()->in('ref.uid', $foreignUids)
             );
         $croppingsCreated = 0;
         $fileReferenceRecords = $queryBuilder->execute()->fetchAll();
         foreach ($fileReferenceRecords as $fileReferenceRecord) {
+            if ($fileReferenceRecord['extension'] === 'pdf') {
+                $fileReferenceRecord = $this->handlePdfDimensions($fileReferenceRecord);
+            }
             if ((int)$fileReferenceRecord['width'] === 0) {
                 continue;
             }
@@ -241,5 +254,15 @@ class CreateNeededCroppings extends Command
             $severity
         );
         $this->flashMessageService->getMessageQueueByIdentifier()->addMessage($flashMessage);
+    }
+
+    protected function handlePdfDimensions(array $fileReferenceRecord): array
+    {
+        $imageService = GeneralUtility::makeInstance(ImageService::class);
+        $fileReference = GeneralUtility::makeInstance(ResourceFactory::class)->getFileReferenceObject($fileReferenceRecord['uid']);
+        $processedImage = $imageService->applyProcessingInstructions($fileReference, ['width' => null, 'height' => null, 'crop' => null]);
+        $fileReferenceRecord['height'] = $processedImage->getProperty('height');
+        $fileReferenceRecord['width'] = $processedImage->getProperty('width');
+        return $fileReferenceRecord;
     }
 }
