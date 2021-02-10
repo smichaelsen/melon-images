@@ -107,7 +107,7 @@ class CreateNeededCroppings extends Command
         $croppingsCreated = 0;
         $fileReferenceRecords = $queryBuilder->execute()->fetchAll();
         foreach ($fileReferenceRecords as $fileReferenceRecord) {
-            if ($fileReferenceRecord['extension'] === 'pdf') {
+            if ((int)$fileReferenceRecord['width'] === 0 && $fileReferenceRecord['extension'] === 'pdf') {
                 $fileReferenceRecord = $this->handlePdfDimensions($fileReferenceRecord);
             }
             if ((int)$fileReferenceRecord['width'] === 0) {
