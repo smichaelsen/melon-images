@@ -227,7 +227,7 @@ class CreateNeededCroppings extends Command
         $tableTca = $GLOBALS['TCA'][$table];
         $fieldTca = $tableTca['columns'][$fieldName];
         if ($tableTca['ctrl']['type'] && $type !== '_all') {
-            $fieldTca = array_merge_recursive($fieldTca, $tableTca['types'][$type]['columnsOverrides'][$fieldName] ?? []);
+            $fieldTca = array_replace_recursive($fieldTca, $tableTca['types'][$type]['columnsOverrides'][$fieldName] ?? []);
         }
         return $fieldTca;
     }
