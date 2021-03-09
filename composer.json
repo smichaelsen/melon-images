@@ -13,5 +13,10 @@
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^2.12"
+  },
+  "extra": {
+    "typo3/cms": {
+      "extension-key": "melon_images"
+    }
   }
 }
