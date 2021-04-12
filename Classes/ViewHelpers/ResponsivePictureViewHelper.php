@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+
 namespace Smichaelsen\MelonImages\ViewHelpers;
 
 use Smichaelsen\MelonImages\Domain\Dto\Dimensions;
@@ -13,6 +14,7 @@ use TYPO3\CMS\Extbase\Object\ObjectManager;
 use TYPO3\CMS\Extbase\Service\ImageService;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper;
 use TYPO3Fluid\Fluid\Core\ViewHelper\TagBuilder;
+use TYPO3\CMS\Core\Resource\File;
 
 class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
 {
@@ -76,7 +78,7 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
             // variant data could not be loaded. fallback rendering (without taking care of image size or aspect ratio):
             $imageService = GeneralUtility::makeInstance(ObjectManager::class)->get(ImageService::class);
             $tagContent = $this->renderImageTag(
-                $imageService->getImageUri($fileReference),
+                $this->getImageUri($fileReference, $imageService),
                 (string)$fileReference->getAlternative(),
                 (string)$fileReference->getTitle(),
                 $this->arguments['additionalImageAttributes']
@@ -121,5 +123,19 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
             $tag->addAttribute($name, $value);
         }
         return $tag->render();
+    }
+
+    protected function getImageUri(FileReference $fileReference, ImageService $imageService): string
+    {
+        if (!$fileReference instanceof FileReference) {
+            return '';
+        }
+        if ($fileReference->getType() !== File::FILETYPE_APPLICATION) {
+            return $imageService->getImageUri($fileReference);
+        }
+        $image = $imageService->getImage($imageService->getImageUri($fileReference), $fileReference, true);
+        $processingInstructions = [];
+        $processedImage = $imageService->applyProcessingInstructions($image, $processingInstructions);
+        return $processedImage->getPublicUrl();
     }
 }
