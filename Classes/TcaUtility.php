@@ -127,16 +127,23 @@ class TcaUtility
 
                 if (isset($aspectRatioConfig['allowedRatios']) && count($aspectRatioConfig['allowedRatios']) > 0) {
                     foreach ($aspectRatioConfig['allowedRatios'] as $dimensionKey => $dimensionConfig) {
-                        $cropVariantsTca[$cropVariantKey]['allowedAspectRatios'][$dimensionKey] = [
-                            'title' => $dimensionConfig['title'] ?? $dimensionKey,
-                            'value' => $dimensionConfig['width'] / $dimensionConfig['height'],
-                        ];
+                        if (isset($dimensionConfig['height'], $dimensionConfig['width'])) {
+                            $cropVariantsTca[$cropVariantKey]['allowedAspectRatios'][$dimensionKey] = [
+                                'title' => $dimensionConfig['title'] ?? $dimensionKey,
+                                'value' => $dimensionConfig['width'] / $dimensionConfig['height'],
+                            ];
+                        } else {
+                            $cropVariantsTca[$cropVariantKey]['allowedAspectRatios']['free'] = [
+                                'title' => $dimensionConfig['title'] ?: 'LLL:EXT:core/Resources/Private/Language/locallang_wizards.xlf:imwizard.ratio.free',
+                                'value' => .0,
+                            ];
+                        }
                     }
                 }
                 if (count($cropVariantsTca[$cropVariantKey]['allowedAspectRatios']) === 0) {
                     $cropVariantsTca[$cropVariantKey]['allowedAspectRatios'] = [
                         'NaN' => [
-                            'title' => 'LLL:EXT:lang/Resources/Private/Language/locallang_wizards.xlf:imwizard.ratio.free',
+                            'title' => 'LLL:EXT:core/Resources/Private/Language/locallang_wizards.xlf:imwizard.ratio.free',
                             'value' => .0,
                         ],
                     ];
