@@ -43,23 +43,31 @@ class Dimensions
         $this->width = $width;
     }
 
-    public function getHeight(): float
+    public function getHeight(): ?float
     {
         return $this->height;
     }
 
-    public function getRatio(): float
+    public function getRatio(): ?float
     {
         return $this->ratio;
     }
 
-    public function getWidth(): float
+    public function getWidth(): ?float
     {
         return $this->width;
     }
 
+    public function isFree(): bool
+    {
+        return $this->ratio === null;
+    }
+
     public function scale(float $factor): Dimensions
     {
-        return new Dimensions($this->width * $factor, $this->height * $factor);
+        return new Dimensions(
+            $this->width === null ? null : $this->width * $factor,
+            $this->height === null ? null : $this->height * $factor
+        );
     }
 }
