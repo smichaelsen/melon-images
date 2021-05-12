@@ -4,6 +4,26 @@ services:
     autoconfigure: true
     public: false
 
+  Smichaelsen\MelonImages\Command\:
+    resource: '../Classes/Command/*'
+    public: true
+
+  Smichaelsen\MelonImages\Configuration\:
+    resource: '../Classes/Configuration/*'
+    public: true
+
+  Smichaelsen\MelonImages\EventListener\:
+    resource: '../Classes/EventListener/*'
+    public: true
+
+  Smichaelsen\MelonImages\Service\:
+    resource: '../Classes/Service/*'
+    public: true
+
+  Smichaelsen\MelonImages\ViewHelpers\:
+    resource: '../Classes/ViewHelpers/*'
+    public: true
+
   Smichaelsen\MelonImages\Command\CreateNeededCroppings:
     tags:
       - name: 'console.command'
@@ -14,6 +34,3 @@ services:
       - name: event.listener
         identifier: 'MelonImagesAddCroppingConfigurationToTca'
         event: TYPO3\CMS\Core\Configuration\Event\AfterTcaCompilationEvent
-
-  Smichaelsen\MelonImages\Service\ImageDataProvider:
-    public: true

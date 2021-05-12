@@ -19,34 +19,56 @@ use TYPO3\CMS\Extbase\Service\ImageService;
 
 class CreateNeededCroppings extends Command
 {
-    /**
-     * @var FlashMessageService
-     */
-    protected $flashMessageService;
+    private const INITIAL_COUNTER_VALUES = [
+        'tables' => 0,
+        'types' => 0,
+        'croppings' => 0,
+    ];
+    protected array $configuration;
+
+    protected array $counters = self::INITIAL_COUNTER_VALUES;
+
+    protected FlashMessageService $flashMessageService;
 
     protected function configure()
     {
         $this->setDescription('Creates default cropping configuration where it is missing for image fields configured for MelonImages');
     }
 
-    public function __construct(string $name = null)
+    public function injectConfigurationRegistry(Registry $configurationRegistry)
     {
-        parent::__construct($name);
-        $this->flashMessageService = GeneralUtility::makeInstance(FlashMessageService::class);
+        $this->configuration = $configurationRegistry->getParsedConfiguration();
+    }
+
+    public function injectFlashMessageService(FlashMessageService $flashMessageService)
+    {
+        $this->flashMessageService = $flashMessageService;
     }
 
     public function execute(InputInterface $input, OutputInterface $output): int
     {
-        $configurationRegistry = GeneralUtility::makeInstance(Registry::class);
-        $configuration = $configurationRegistry->getParsedConfiguration();
-        foreach ($configuration['croppingConfiguration'] as $tableName => $tableConfiguration) {
+        $this->counters = self::INITIAL_COUNTER_VALUES;
+        foreach ($this->configuration['croppingConfiguration'] as $tableName => $tableConfiguration) {
+            $this->counters['tables']++;
             foreach ($tableConfiguration as $type => $fields) {
+                $this->counters['types']++;
                 foreach ($fields as $fieldName => $fieldConfig) {
                     $tcaPath = [$tableName, (string)$type, $fieldName];
                     $this->createCroppingsForVariantsWithNestedRecords($tcaPath, $fieldConfig);
                 }
             }
         }
+        $message = sprintf(
+            'Configuration of %d tables and %d record types successfully parsed. ',
+            $this->counters['tables'],
+            $this->counters['types'],
+        );
+        if ($this->counters['croppings'] > 0) {
+            $message .= sprintf('%d croppings were missing and were just created', $this->counters['croppings']);
+        } else {
+            $message .= 'No croppings were missing.';
+        }
+        $this->addFlashMessage($message, FlashMessage::INFO);
         return 0;
     }
 
@@ -56,6 +78,7 @@ class CreateNeededCroppings extends Command
             $this->createCroppingForVariants($tcaPath, $fieldConfig['variants'], implode('__', $tcaPath));
         } else {
             foreach ($fieldConfig as $subType => $subFields) {
+                $this->counters['types']++;
                 foreach ($subFields as $subFieldName => $subFieldConfig) {
                     $subFieldTcaPath = $tcaPath;
                     $subFieldTcaPath[] = $subType;
@@ -171,6 +194,7 @@ class CreateNeededCroppings extends Command
                 )->execute();
         }
         if ($croppingsCreated > 0) {
+            $this->counters['croppings'] += $croppingsCreated;
             $this->addFlashMessage($croppingsCreated . ' croppings created for ' . $variantIdPrefix, FlashMessage::OK);
         }
     }
@@ -271,12 +295,12 @@ class CreateNeededCroppings extends Command
         return $fieldTca;
     }
 
-    protected function addFlashMessage(string $message, int $severity)
+    protected function addFlashMessage(string $message, int $severity): void
     {
         $flashMessage = GeneralUtility::makeInstance(
             FlashMessage::class,
-            (string)$message,
-            'Content Hub News Migration',
+            $message,
+            'Melon Images',
             $severity
         );
         $this->flashMessageService->getMessageQueueByIdentifier()->addMessage($flashMessage);

@@ -3,15 +3,21 @@ declare(strict_types = 1);
 namespace Smichaelsen\MelonImages\Configuration;
 
 use TYPO3\CMS\Core\Configuration\Loader\YamlFileLoader;
-use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-class Registry implements SingletonInterface
+class Registry
 {
     /**
      * @var string[]
      */
-    protected $configurationFiles = [];
+    protected array $configurationFiles = [];
+
+    protected YamlFileLoader $yamlFileLoader;
+
+    public function __construct(YamlFileLoader $yamlFileLoader)
+    {
+        $this->yamlFileLoader = $yamlFileLoader;
+    }
 
     public function registerConfigurationFile(string $configurationFilePath): void
     {
@@ -33,8 +39,7 @@ class Registry implements SingletonInterface
         switch ($pathInfo['extension']) {
             case 'yml':
             case 'yaml':
-                $yamlFileLoader = GeneralUtility::makeInstance(YamlFileLoader::class);
-                return $yamlFileLoader->load($filePath);
+                return $this->yamlFileLoader->load($filePath);
             case 'json':
                 $absoluteFilePath = GeneralUtility::getFileAbsFileName($filePath);
                 return json_decode(file_get_contents($absoluteFilePath), true);
