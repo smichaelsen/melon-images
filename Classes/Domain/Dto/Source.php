@@ -7,12 +7,9 @@ use TYPO3Fluid\Fluid\Core\ViewHelper\TagBuilder;
 
 class Source
 {
-    /**
-     * @var Dimensions
-     */
-    protected $dimensions;
+    protected Dimensions $dimensions;
 
-    protected $mediaQuery = '';
+    protected string $mediaQuery = '';
 
     /**
      * @var Set[]

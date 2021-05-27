@@ -5,9 +5,9 @@ namespace Smichaelsen\MelonImages\Domain\Dto;
 
 class Set
 {
-    protected $imageUri = '';
+    protected string $imageUri = '';
 
-    protected $pixelDensity = 1.0;
+    protected float $pixelDensity = 1.0;
 
     public function getImageUri(): string
     {

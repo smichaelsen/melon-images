@@ -2,10 +2,8 @@
 declare(strict_types = 1);
 namespace Smichaelsen\MelonImages\Updates;
 
-use TYPO3\CMS\Core\Console\CommandRegistry;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Reflection\ObjectAccess;
 use TYPO3\CMS\Install\Updates\UpgradeWizardInterface;
 use TYPO3\CMS\Scheduler\Task\ExecuteSchedulableCommandTask;
 
@@ -37,7 +35,7 @@ class MigrateSchedulerTask implements UpgradeWizardInterface
             ->fetchAllAssociative();
 
         $queryBuilder->update('tx_scheduler_task');
-        foreach ($tasks as $key => $task) {
+        foreach ($tasks as $task) {
             if (strpos($task['serialized_task_object'], 'melon_images:createneededcroppings:createneededcroppings') === false) {
                 continue;
             }

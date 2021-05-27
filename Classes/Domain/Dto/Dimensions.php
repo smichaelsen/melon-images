@@ -7,20 +7,11 @@ use TYPO3\CMS\Core\Utility\MathUtility;
 
 class Dimensions
 {
-    /**
-     * @var float
-     */
-    protected $height;
+    protected ?float $height;
 
-    /**
-     * @var float
-     */
-    protected $ratio;
+    protected ?float $ratio;
 
-    /**
-     * @var float
-     */
-    protected $width;
+    protected ?float $width;
 
     public function __construct(?float $width, ?float $height, $ratio = null)
     {

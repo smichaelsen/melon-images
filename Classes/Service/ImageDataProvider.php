@@ -13,15 +13,11 @@ use TYPO3\CMS\Core\Resource\ProcessedFile;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Utility\MathUtility;
 use TYPO3\CMS\Extbase\Service\ImageService;
 
 class ImageDataProvider implements SingletonInterface
 {
-    /**
-     * @var ImageService
-     */
-    protected $imageService;
+    protected ImageService $imageService;
 
     public function injectImageService(ImageService $imageService)
     {
