@@ -25,9 +25,19 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
      */
     protected $imageDataProvider;
 
+    /**
+     * @var ResourceFactory
+     */
+    protected $resourceFactory;
+
     public function injectImageDataProvider(ImageDataProvider $imageDataProvider)
     {
         $this->imageDataProvider = $imageDataProvider;
+    }
+
+    public function injectResourceFactory(ResourceFactory $resourceFactory)
+    {
+        $this->resourceFactory = $resourceFactory;
     }
 
     public function initializeArguments()
@@ -47,9 +57,9 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
     {
         $fileReference = $this->arguments['fileReference'];
         if (is_numeric($fileReference)) {
-            $fileReference = ResourceFactory::getInstance()->getFileReferenceObject((int)$fileReference);
+            $fileReference = $this->resourceFactory->getFileReferenceObject((int)$fileReference);
         } elseif (is_array($fileReference)) {
-            $fileReference = ResourceFactory::getInstance()->getFileReferenceObject((int)$fileReference['uid']);
+            $fileReference = $this->resourceFactory->getFileReferenceObject((int)$fileReference['uid']);
         } elseif ($fileReference instanceof ExtbaseFileReferenceModel) {
             $fileReference = $fileReference->getOriginalResource();
         }
@@ -58,7 +68,9 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         }
         $useCroppingFrom = $this->arguments['useCroppingFrom'];
         if (is_array($useCroppingFrom)) {
-            $useCroppingFrom = ResourceFactory::getInstance()->getFileReferenceObject($useCroppingFrom['uid']);
+            $useCroppingFrom = $this->resourceFactory->getFileReferenceObject($useCroppingFrom['uid']);
+        } elseif (is_array($useCroppingFrom)) {
+            $fileReference = $this->resourceFactory->getFileReferenceObject((int)$useCroppingFrom['uid']);
         } elseif ($useCroppingFrom instanceof ExtbaseFileReferenceModel) {
             $useCroppingFrom = $useCroppingFrom->getOriginalResource();
         }

@@ -303,6 +303,7 @@ class CreateNeededCroppings extends Command
             'Melon Images',
             $severity
         );
+        // @extensionScannerIgnoreLine - the extension scanner shows a weak warning, because it suspects that SchedulerModuleController->addMessage is called here, but it isn't
         $this->flashMessageService->getMessageQueueByIdentifier()->addMessage($flashMessage);
     }
 
