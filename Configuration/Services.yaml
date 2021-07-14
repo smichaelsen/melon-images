@@ -34,3 +34,11 @@ services:
       - name: event.listener
         identifier: 'MelonImagesAddCroppingConfigurationToTca'
         event: TYPO3\CMS\Core\Configuration\Event\AfterTcaCompilationEvent
+
+  Smichaelsen\MelonImages\Service\ConfigurationLoader:
+    arguments: ['@cache.melon_images']
+
+  cache.melon_images:
+    class: TYPO3\CMS\Core\Cache\Frontend\FrontendInterface
+    factory: ['TYPO3\CMS\Core\Core\Bootstrap', 'createCache']
+    arguments: ['melon_images']

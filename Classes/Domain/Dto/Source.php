@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Smichaelsen\MelonImages\Domain\Dto;
@@ -50,8 +51,7 @@ class Source
     public function getSrcsetsString(): string
     {
         $strings = [];
-        foreach ($this->sets as $set)
-        {
+        foreach ($this->sets as $set) {
             $strings[] = $set->__toString();
         }
         return implode(', ', $strings);

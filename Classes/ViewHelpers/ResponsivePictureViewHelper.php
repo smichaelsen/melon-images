@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Smichaelsen\MelonImages\ViewHelpers;
@@ -6,6 +7,7 @@ namespace Smichaelsen\MelonImages\ViewHelpers;
 use Smichaelsen\MelonImages\Domain\Dto\Dimensions;
 use Smichaelsen\MelonImages\Domain\Dto\Source;
 use Smichaelsen\MelonImages\Service\ImageDataProvider;
+use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\FileReference;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -14,7 +16,6 @@ use TYPO3\CMS\Extbase\Object\ObjectManager;
 use TYPO3\CMS\Extbase\Service\ImageService;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper;
 use TYPO3Fluid\Fluid\Core\ViewHelper\TagBuilder;
-use TYPO3\CMS\Core\Resource\File;
 
 class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
 {

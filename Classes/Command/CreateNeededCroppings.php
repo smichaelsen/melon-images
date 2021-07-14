@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Smichaelsen\MelonImages\Command;
 
-use Smichaelsen\MelonImages\Configuration\Registry;
 use Smichaelsen\MelonImages\Domain\Dto\Dimensions;
+use Smichaelsen\MelonImages\Service\ConfigurationLoader;
 use Smichaelsen\MelonImages\Service\TcaService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -35,9 +35,9 @@ class CreateNeededCroppings extends Command
         $this->setDescription('Creates default cropping configuration where it is missing for image fields configured for MelonImages');
     }
 
-    public function injectConfigurationRegistry(Registry $configurationRegistry)
+    public function injectConfigurationRegistry(ConfigurationLoader $configurationLoader)
     {
-        $this->configuration = $configurationRegistry->getParsedConfiguration();
+        $this->configuration = $configurationLoader->getConfiguration();
     }
 
     public function injectFlashMessageService(FlashMessageService $flashMessageService)

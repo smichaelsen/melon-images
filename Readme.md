@@ -5,16 +5,23 @@ This package uses the powerful responsive image cropping capabilities of TYPO3 a
 
 ![Image Cropping](doc/image-cropping.png?raw=true "Image Cropping")
 
-TYPO3 8.7 comes with the powerful feature of `cropVariant`s, which lets you define use cases for your image including `allowedAspectRatios` and optionally `coverAreas`.
+TYPO3 comes with the powerful feature of `cropVariant`s, which lets you define use cases for your image including `allowedAspectRatios` and optionally `coverAreas`.
 This package simplifies the configuration and frontend rendering of this feature.
 
 ## Configuration:
 
+### Files
+
 You can write configuration in YAML, JSON or as PHP arrays. All examples below are in YAML, just use the same structure in JSON and in PHP.
 
-Register your configuration files in `ext_localconf.php` of your extension like this:
+From all loaded packages if any of the following configuration files exist, they will automatically be loaded:
 
-`\TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\Smichaelsen\MelonImages\Configuration\Registry::class)->registerConfigurationFile('EXT:my_ext/Configuration/MelonImages.yaml');`
+* `Configuration/MelonImages.yaml`
+* `Configuration/MelonImages.yml`
+* `Configuration/MelonImages.json`
+* `Configuration/MelonImages.config.php`
+
+### Structure
 
 The example below configures 4 **variants** of the `tx_news_domain_model_news.fal_media` field,
 that are *detail*, *featured*, *teaser* and *square*. The use case is we want to use the same image in different views with different cropping. Each
@@ -112,7 +119,7 @@ croppingConfiguration:
 
 ### Auto Render
 
-To render the reponsive image with the correct cropping use the **ResponsivePictureViewHelper**:
+To render the responsive image with the correct cropping use the **ResponsivePictureViewHelper**:
 
 ```
 <html

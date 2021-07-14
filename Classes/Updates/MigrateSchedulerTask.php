@@ -1,5 +1,6 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
 namespace Smichaelsen\MelonImages\Updates;
 
 use TYPO3\CMS\Core\Database\ConnectionPool;
@@ -9,7 +10,6 @@ use TYPO3\CMS\Scheduler\Task\ExecuteSchedulableCommandTask;
 
 class MigrateSchedulerTask implements UpgradeWizardInterface
 {
-
     public function getIdentifier(): string
     {
         return 'melonImagesMigrateSchedulerTask';
@@ -71,7 +71,7 @@ class MigrateSchedulerTask implements UpgradeWizardInterface
         $unserializedArray = (array)$unserializedObject;
         $stdClass = new \stdClass();
         // remove null byte prefix from "protected" array keys
-        foreach($unserializedArray as $key => $value) {
+        foreach ($unserializedArray as $key => $value) {
             $cleanKey = str_replace("\0", '', $key);
             $cleanKey = trim($cleanKey, '*');
             $stdClass->{$cleanKey} = $value;

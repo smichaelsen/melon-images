@@ -1,8 +1,8 @@
 <?php
+
 declare(strict_types=1);
 namespace Smichaelsen\MelonImages\Service;
 
-use Smichaelsen\MelonImages\Configuration\Registry;
 use Smichaelsen\MelonImages\Domain\Dto\Dimensions;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 
@@ -10,9 +10,9 @@ class TcaService
 {
     private array $configuration;
 
-    public function __construct(Registry $registry)
+    public function __construct(ConfigurationLoader $configurationLoader)
     {
-        $this->configuration = $registry->getParsedConfiguration();
+        $this->configuration = $configurationLoader->getConfiguration();
     }
 
     public function registerCropVariantsTca(array $tca): array

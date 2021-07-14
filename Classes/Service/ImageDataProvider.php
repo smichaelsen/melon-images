@@ -1,8 +1,8 @@
 <?php
+
 declare(strict_types=1);
 namespace Smichaelsen\MelonImages\Service;
 
-use Smichaelsen\MelonImages\Configuration\Registry;
 use Smichaelsen\MelonImages\Domain\Dto\Dimensions;
 use Smichaelsen\MelonImages\Domain\Dto\Set;
 use Smichaelsen\MelonImages\Domain\Dto\Source;
@@ -20,9 +20,9 @@ class ImageDataProvider implements SingletonInterface
     protected array $configuration;
     protected ImageService $imageService;
 
-    public function __construct(ImageService $imageService, Registry $registry)
+    public function __construct(ImageService $imageService, ConfigurationLoader $configurationLoader)
     {
-        $this->configuration = $registry->getParsedConfiguration();
+        $this->configuration = $configurationLoader->getConfiguration();
         $this->imageService = $imageService;
     }
 
