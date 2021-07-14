@@ -8,10 +8,6 @@ services:
     resource: '../Classes/Command/*'
     public: true
 
-  Smichaelsen\MelonImages\Configuration\:
-    resource: '../Classes/Configuration/*'
-    public: true
-
   Smichaelsen\MelonImages\EventListener\:
     resource: '../Classes/EventListener/*'
     public: true
