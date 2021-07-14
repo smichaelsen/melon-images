@@ -6,7 +6,7 @@ namespace Smichaelsen\MelonImages\Command;
 
 use Smichaelsen\MelonImages\Configuration\Registry;
 use Smichaelsen\MelonImages\Domain\Dto\Dimensions;
-use Smichaelsen\MelonImages\TcaUtility;
+use Smichaelsen\MelonImages\Service\TcaService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -138,7 +138,7 @@ class CreateNeededCroppings extends Command
             }
             $cropConfiguration = json_decode($fileReferenceRecord['crop'], true) ?? [];
             foreach ($variants as $variant => $variantConfiguration) {
-                $aspectRatioConfigs = TcaUtility::getAspectRatiosFromSizes($variantConfiguration['sizes']);
+                $aspectRatioConfigs = TcaService::getAspectRatiosFromSizes($variantConfiguration['sizes']);
                 foreach ($aspectRatioConfigs as $aspectRatioIdentifier => $aspectRatioConfig) {
                     $variantId = $variantIdPrefix . '__' . $variant . '__' . $aspectRatioIdentifier;
                     if (!isset($cropConfiguration[$variantId])) {

@@ -1,22 +1,26 @@
 <?php
 declare(strict_types=1);
-namespace Smichaelsen\MelonImages;
+namespace Smichaelsen\MelonImages\Service;
 
 use Smichaelsen\MelonImages\Configuration\Registry;
 use Smichaelsen\MelonImages\Domain\Dto\Dimensions;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-class TcaUtility
+class TcaService
 {
-    public static function registerCropVariantsTca(array $tca): array
+    private array $configuration;
+
+    public function __construct(Registry $registry)
     {
-        $configurationRegistry = GeneralUtility::makeInstance(Registry::class);
-        $configuration = $configurationRegistry->getParsedConfiguration();
-        if (empty($configuration)) {
+        $this->configuration = $registry->getParsedConfiguration();
+    }
+
+    public function registerCropVariantsTca(array $tca): array
+    {
+        if (empty($this->configuration)) {
             return $tca;
         }
-        foreach ($configuration['croppingConfiguration'] as $tableName => $tableConfiguration) {
+        foreach ($this->configuration['croppingConfiguration'] as $tableName => $tableConfiguration) {
             if (empty($tca[$tableName])) {
                 continue;
             }
