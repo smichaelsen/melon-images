@@ -17,6 +17,9 @@ class TcaUtility
             return $tca;
         }
         foreach ($configuration['croppingConfiguration'] as $tableName => $tableConfiguration) {
+            if (empty($tca[$tableName])) {
+                continue;
+            }
             foreach ($tableConfiguration as $type => $fields) {
                 foreach ($fields as $fieldName => $fieldConfig) {
                     $variantIdPrefixParts = [$tableName, $type, $fieldName];
