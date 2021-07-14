@@ -26,7 +26,7 @@ class ImageDataProvider implements SingletonInterface
         $this->imageService = $imageService;
     }
 
-    public function getImageVariantData(FileReference $fileReference, string $variant, $fallbackImageSize = null, $absolute = false, ?FileReference $useCroppingFrom = null): ?array
+    public function getImageVariantData(FileReference $fileReference, string $variant, ?string $fallbackImageSize = null, $absolute = false, ?FileReference $useCroppingFrom = null): ?array
     {
         if ($useCroppingFrom instanceof FileReference) {
             $crop = $useCroppingFrom->getProperty('crop');
@@ -48,7 +48,6 @@ class ImageDataProvider implements SingletonInterface
 
         $sources = [];
         $pixelDensities = $this->getPixelDensities();
-        /** @var string $fallbackCropVariantId */
         $fallbackCropVariantId = null;
         foreach ($cropVariantIds as $cropVariantId) {
             $sizeConfigurations = $this->getSizeConfigurations($cropVariantId);
@@ -56,29 +55,7 @@ class ImageDataProvider implements SingletonInterface
                 continue;
             }
             foreach ($sizeConfigurations as $sizeIdentifier => $sizeConfiguration) {
-                $source = new Source(
-                    $this->getMediaQueryFromSizeConfig($sizeConfiguration),
-                    $this->getProcessingWidthAndHeight(
-                        $sizeConfiguration,
-                        $matchingCropConfiguration[$cropVariantId]['selectedRatio']
-                    )
-                );
-                foreach ($pixelDensities as $pixelDensity) {
-                    $processingDimensions = $this->getProcessingWidthAndHeight(
-                        $sizeConfiguration,
-                        $matchingCropConfiguration[$cropVariantId]['selectedRatio'],
-                        (float)$pixelDensity
-                    );
-                    $processedImage = $this->processImage($fileReference, $processingDimensions, $cropVariants->getCropArea($cropVariantId));
-                    $imageUri = $this->imageService->getImageUri($processedImage, $absolute);
-                    $set = new Set();
-                    $set->setImageUri($imageUri);
-                    $set->setPixelDensity((float)$pixelDensity);
-                    $source->addSet($set);
-                }
-
-                $sources[$sizeIdentifier] = $source;
-
+                $sources[$sizeIdentifier] = $this->createSource($sizeConfiguration, $matchingCropConfiguration[$cropVariantId]['selectedRatio'], $cropVariantId, $pixelDensities, $fileReference, $cropVariants, $absolute);
                 if ($fallbackImageSize) {
                     if ($fallbackImageSize === $sizeIdentifier) {
                         $fallbackCropVariantId = $cropVariantId;
@@ -108,19 +85,30 @@ class ImageDataProvider implements SingletonInterface
         ];
     }
 
-    protected function processImage(
-        FileReference $fileReference,
-        Dimensions $dimensions,
-        ?Area $cropArea
-    ): ProcessedFile {
-        if ($cropArea instanceof Area && !$cropArea->isEmpty()) {
-            $cropArea = $cropArea->makeAbsoluteBasedOnFile($fileReference);
-        } else {
-            $cropArea = null;
+    protected function createSource(array $sizeConfiguration, string $selectedRatio, string $cropVariantId, array $pixelDensities, FileReference $fileReference, CropVariantCollection $cropVariants, bool $absolute): Source
+    {
+        $source = new Source(
+            $this->getMediaQueryFromSizeConfig($sizeConfiguration),
+            $this->getProcessingWidthAndHeight($sizeConfiguration, $selectedRatio)
+        );
+        foreach ($pixelDensities as $pixelDensity) {
+            $processingDimensions = $this->getProcessingWidthAndHeight($sizeConfiguration, $selectedRatio, (float)$pixelDensity);
+            $processedImage = $this->processImage($fileReference, $processingDimensions, $cropVariants->getCropArea($cropVariantId));
+            $imageUri = $this->imageService->getImageUri($processedImage, $absolute);
+            $set = new Set();
+            $set->setImageUri($imageUri);
+            $set->setPixelDensity((float)$pixelDensity);
+            $source->addSet($set);
         }
-        $processingInstructions = [
-            'crop' => $cropArea,
-        ];
+        return $source;
+    }
+
+    protected function processImage(FileReference $fileReference, Dimensions $dimensions, ?Area $cropArea): ProcessedFile
+    {
+        $processingInstructions = [];
+        if ($cropArea instanceof Area && !$cropArea->isEmpty()) {
+            $processingInstructions['crop'] = $cropArea->makeAbsoluteBasedOnFile($fileReference);
+        }
         $processingInstructions['width'] = $dimensions->getWidth();
         $processingInstructions['height'] = $dimensions->getHeight();
         return $this->imageService->applyProcessingInstructions($fileReference, $processingInstructions);
@@ -215,9 +203,8 @@ class ImageDataProvider implements SingletonInterface
     {
         static $melonConfigPerTcaPath = [];
         if (!isset($melonConfigPerTcaPath[$configurationPath])) {
-            $configuration = $this->configuration;
             try {
-                $melonConfigPerTcaPath[$configurationPath] = ArrayUtility::getValueByPath($configuration['croppingConfiguration'], $configurationPath);
+                $melonConfigPerTcaPath[$configurationPath] = ArrayUtility::getValueByPath($this->configuration['croppingConfiguration'], $configurationPath);
             } catch (\RuntimeException $e) {
                 // path does not exist
                 if ($e->getCode() === 1341397869) {
