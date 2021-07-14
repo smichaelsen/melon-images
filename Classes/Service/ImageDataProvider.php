@@ -17,10 +17,12 @@ use TYPO3\CMS\Extbase\Service\ImageService;
 
 class ImageDataProvider implements SingletonInterface
 {
+    protected array $configuration;
     protected ImageService $imageService;
 
-    public function injectImageService(ImageService $imageService)
+    public function __construct(ImageService $imageService, Registry $registry)
     {
+        $this->configuration = $registry->getParsedConfiguration();
         $this->imageService = $imageService;
     }
 
@@ -164,7 +166,7 @@ class ImageDataProvider implements SingletonInterface
 
     protected function getBreakpoints(): array
     {
-        $breakpoints = $this->getConfiguration()['breakpoints'];
+        $breakpoints = $this->configuration['breakpoints'];
         if (is_string($breakpoints)) {
             $breakpoints = GeneralUtility::trimExplode(',', $breakpoints);
         }
@@ -173,7 +175,7 @@ class ImageDataProvider implements SingletonInterface
 
     protected function getPixelDensities(): array
     {
-        $pixelDensities = $this->getConfiguration()['pixelDensities'];
+        $pixelDensities = $this->configuration['pixelDensities'];
         if (empty($pixelDensities)) {
             return ['1'];
         }
@@ -181,16 +183,6 @@ class ImageDataProvider implements SingletonInterface
             $pixelDensities = GeneralUtility::trimExplode(',', $pixelDensities);
         }
         return $pixelDensities;
-    }
-
-    protected function getConfiguration(): array
-    {
-        static $configuration;
-        if (!is_array($configuration)) {
-            $configurationRegistry = GeneralUtility::makeInstance(Registry::class);
-            $configuration = $configurationRegistry->getParsedConfiguration();
-        }
-        return $configuration;
     }
 
     protected function getMediaQueryFromSizeConfig(array $sizeConfiguration): string
@@ -223,7 +215,7 @@ class ImageDataProvider implements SingletonInterface
     {
         static $melonConfigPerTcaPath = [];
         if (!isset($melonConfigPerTcaPath[$configurationPath])) {
-            $configuration = $this->getConfiguration();
+            $configuration = $this->configuration;
             try {
                 $melonConfigPerTcaPath[$configurationPath] = ArrayUtility::getValueByPath($configuration['croppingConfiguration'], $configurationPath);
             } catch (\RuntimeException $e) {
