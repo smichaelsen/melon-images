@@ -77,6 +77,7 @@ class ImageDataProvider implements SingletonInterface
         $fallbackImageConfig = [
             'src' => $this->imageService->getImageUri($processedFallbackImage, $absolute),
             'dimensions' => $processingDimensions,
+            'processedFile' => $processedFallbackImage,
         ];
 
         return [
