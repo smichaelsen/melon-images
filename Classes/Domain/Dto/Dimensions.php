@@ -8,6 +8,8 @@ use TYPO3\CMS\Core\Utility\MathUtility;
 
 class Dimensions
 {
+    private const FREE_RATIO_IDENTIFIER = 'free';
+
     protected ?float $height;
 
     protected ?float $ratio;
@@ -17,7 +19,7 @@ class Dimensions
     public function __construct(?float $width, ?float $height, $ratio = null)
     {
         if (is_string($ratio)) {
-            $ratio = (float)MathUtility::calculateWithParentheses($ratio);
+            $ratio = $ratio === self::FREE_RATIO_IDENTIFIER ? null : (float)MathUtility::calculateWithParentheses($ratio);
         }
 
         if ($height !== null && $ratio !== null && $width === null) {
