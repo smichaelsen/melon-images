@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Smichaelsen\MelonImages\ViewHelpers;
 
-use Smichaelsen\MelonImages\Domain\Dto\Dimensions;
 use Smichaelsen\MelonImages\Domain\Dto\Source;
 use Smichaelsen\MelonImages\Service\ImageDataProvider;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\FileReference;
+use TYPO3\CMS\Core\Resource\ProcessedFile;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Domain\Model\FileReference as ExtbaseFileReferenceModel;
@@ -95,10 +95,10 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
 
             $additionalAttributes = (array)$this->arguments['additionalImageAttributes'];
             if (!isset($additionalAttributes['width']) && !isset($additionalAttributes['height'])) {
-                /** @var Dimensions $dimensions */
-                $dimensions = $variantData['fallbackImage']['dimensions'];
-                $additionalAttributes['width'] = (int)round($dimensions->getWidth());
-                $additionalAttributes['height'] = (int)round($dimensions->getHeight());
+                /** @var ProcessedFile $processedFile */
+                $processedFile = $variantData['fallbackImage']['processedFile'];
+                $additionalAttributes['width'] = $processedFile->getProperty('width');
+                $additionalAttributes['height'] = $processedFile->getProperty('height');
             }
 
             $tagContent = '';
