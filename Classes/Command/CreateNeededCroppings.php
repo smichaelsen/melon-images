@@ -143,10 +143,11 @@ class CreateNeededCroppings extends Command
                     $variantId = $variantIdPrefix . '__' . $variant . '__' . $aspectRatioIdentifier;
                     if (!isset($cropConfiguration[$variantId])) {
                         if (isset($aspectRatioConfig['allowedRatios'])) {
-                            $defaultRatio = $this->getDefaultRatioKey($aspectRatioConfig['allowedRatios']);
+                            $defaultRatio = $selectedRatio = $this->getDefaultRatioKey($aspectRatioConfig['allowedRatios']);
                             $allowedRatioConfig = $aspectRatioConfig['allowedRatios'][$defaultRatio];
                             $dimensions = new Dimensions($allowedRatioConfig['width'], $allowedRatioConfig['height'], $allowedRatioConfig['ratio']);
                             if ($dimensions->isFree()) {
+                                $selectedRatio = 'NaN';
                                 $cropArea = [
                                     'width' => 1,
                                     'height' => 1,
@@ -162,7 +163,7 @@ class CreateNeededCroppings extends Command
                             }
                             $cropConfiguration[$variantId] = [
                                 'cropArea' => $cropArea,
-                                'selectedRatio' => $defaultRatio,
+                                'selectedRatio' => $selectedRatio,
                                 'focusArea' => null,
                             ];
                         } else {
