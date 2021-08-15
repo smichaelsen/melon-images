@@ -46,9 +46,7 @@ breakpoints:
     from: 1024
 
 # render images in 1x and 2x
-pixelDensities:
-  - 1
-  - 2
+pixelDensities: [ 1, 2 ]
 
 croppingConfiguration:
   tx_news_domain_model_news:
@@ -56,12 +54,22 @@ croppingConfiguration:
     _all:
       fal_media:
         variants:
+          default:
+            sizes:
+              # The small and big size both allow free ratio and will therefore automatically be grouped in the backend with the name "Free"
+              big:
+                breakpoints:  [ tablet, desktop ]
+                width: 943
+                ratio: free
+              small:
+                breakpoints: [ phone ]
+                width: 320
+                ratio: free
+
           detail:
             sizes:
               big:
-                breakpoints:
-                  - tablet
-                  - desktop
+                breakpoints: [ tablet, phone ]
                 width: 943
                 height: 419
 
@@ -333,7 +341,11 @@ croppingConfiguration:
 `breakpoints` (optional): Comma separated list of breakpoint names (See *1. Breakpoints*) that this size is used for. If omitted the size will have no media query condition is used on all screens - recommended if you use only one size for the given variant. <br>
 `width` (optional): Width in pixels the image is rendered in. <br>
 `height` (optional): Height in pixels the image is rendered in. <br>
-`ratio` (optional): If the ratio is given (in the x/y, e.g. 16/9) the width or the height may be omitted. The height can be calculated by width and ratio. The width can be calculated by height and ratio. If multiple sizes share the same ratios they are grouped in the backend so that the editor sets a single cropping for them. In the frontend they are still rendered as different sizes for different breakpoints.
+`ratio` (optional): If the ratio is given (in the x/y, e.g. 16/9) the width or the height may be omitted.
+The height can be calculated by width and ratio. The width can be calculated by height and ratio.
+It is also possible to specify a ratio as `free`, which configures the cropping editor to allow croppings with arbitrary image dimensions.
+*If multiple sizes share the same ratios they are grouped in the backend so that the editor sets a single cropping for them.*
+In the frontend they are still rendered as different sizes for different breakpoints.
 
 If you provide `width` and `height` it results in a fixed aspect ratio that is enforced in the backend cropping tool. Neat!
 
