@@ -32,7 +32,7 @@ viewport sizes) and *phone*.
 
 ```
 breakpoints:
-  # phone from 0 to 470
+  # phone from 0 to 479
   phone:
     to: 479
 
