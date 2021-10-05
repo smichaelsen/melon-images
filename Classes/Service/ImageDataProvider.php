@@ -117,8 +117,18 @@ class ImageDataProvider implements SingletonInterface
 
     protected function getProcessingWidthAndHeight(array $sizeConfiguration, string $selectedRatio, float $pixelDensity = 1.0): Dimensions
     {
-        if (!empty($selectedRatio) && isset($sizeConfiguration['allowedRatios'], $sizeConfiguration['allowedRatios'][$selectedRatio])) {
-            $sizeConfiguration = $sizeConfiguration['allowedRatios'][$selectedRatio];
+        if (!empty($selectedRatio) && isset($sizeConfiguration['allowedRatios'])) {
+            // compatibility: allow "free" configuration for "NaN":
+            if (isset($sizeConfiguration['allowedRatios']['free']) && !(isset($sizeConfiguration['allowedRatios']['NaN']))) {
+                $sizeConfiguration['allowedRatios']['NaN'] = $sizeConfiguration['allowedRatios']['free'];
+            }
+            if ($selectedRatio === 'free') {
+                $selectedRatio = 'NaN';
+            }
+
+            if (isset($sizeConfiguration['allowedRatios'][$selectedRatio])) {
+                $sizeConfiguration = $sizeConfiguration['allowedRatios'][$selectedRatio];
+            }
         }
         $dimensions = new Dimensions($sizeConfiguration['width'], $sizeConfiguration['height'], $sizeConfiguration['ratio']);
         return $dimensions->scale($pixelDensity);
