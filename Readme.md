@@ -30,7 +30,7 @@ viewport sizes) and *phone*.
 
 > See "Configuration Reference" bellow for a more detailed explanation
 
-```
+```yaml
 breakpoints:
   # phone from 0 to 479
   phone:
@@ -129,7 +129,7 @@ croppingConfiguration:
 
 To render the responsive image with the correct cropping use the **ResponsivePictureViewHelper**:
 
-```
+```html
 <html
     xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
     xmlns:melon="http://typo3.org/ns/Smichaelsen/MelonImages/ViewHelpers"
@@ -144,7 +144,7 @@ To render the responsive image with the correct cropping use the **ResponsivePic
 
 The rendering (with the above config) looks something like this:
 
-```
+```html
 <picture>
     <source srcset="fileadmin/_processed_/e/d/myimage_a6510d9ea7.jpg 1x, fileadmin/_processed_/e/d/myimage_7ca6b4a05b.jpg 2x" media="(min-width: 480px) and (max-width: 1023px), (min-width: 1024px)">
     <source srcset="fileadmin/_processed_/e/d/myimage_e9798f5526.jpg 1x, fileadmin/_processed_/e/d/myimage_23053285d0.jpg 2x" media="(max-width: 479px)">
@@ -156,7 +156,7 @@ The rendering (with the above config) looks something like this:
 
 The rendering as responsive `<picture>` tag is not always desirable. You can also get the data of the sources and fallback image and use it in your own markup:
 
-```
+```html
 <html
     xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
     xmlns:melon="http://typo3.org/ns/Smichaelsen/MelonImages/ViewHelpers"
@@ -176,7 +176,7 @@ The rendering as responsive `<picture>` tag is not always desirable. You can als
 
 The rendering looks something like this:
 
-```
+```html
 <meta property="og:image" content="https://www.example.com/fileadmin/_processed_/e/d/myimage_e7a4c74e8b.jpg" />
 <meta property="og:image:width" content="512" />
 <meta property="og:image:height" content="512" />
@@ -217,7 +217,7 @@ Make sure your breakpoint ranges follow each other without gap or overlapping to
 
 Example:
 
-```
+```yaml
 breakpoints:
   # phone from 0 to 470
   phone:
@@ -243,7 +243,7 @@ It renders images in standard size (`1`) and double size for displays that suppo
 
 Example:
 
-```
+```yaml
 pixelDensities:
   - 1
   - 2
@@ -257,7 +257,7 @@ If the configuration should apply to all records of the `<table>` regardless of 
 
 Example:
 
-```
+```yaml
 croppingConfiguration:
   tx_news_domain_model_news:
     _all:
@@ -286,7 +286,7 @@ The field must be:
 Array of variant names you can arbitrarily choose. Think of a variant as of situations you want to use an image in.
 If want to use it in a list view, a detail view and a social media sharing format, your structure could look like in this example:
 
-```
+```yaml
 croppingConfiguration:
   tx_news_domain_model_news:
     _all:
@@ -315,7 +315,7 @@ Array of size names you can arbitrarily choose. Here you define how many differe
 Imagine you need to render the detail image of an article in 3 different sizes, but the list image only in one size because a responsive grid
 in the frontend takes care of the images always being displayed in the same size on all devices, your structure could look like in this example:
 
-```
+```yaml
 croppingConfiguration:
   tx_news_domain_model_news:
     _all:
@@ -364,7 +364,7 @@ Each cover area needs has following properties:
 
 Example:
 
-```
+```yaml
 croppingConfiguration:
   tx_news_domain_model_news:
     _all:
@@ -399,7 +399,7 @@ If you want to use this feature you need to take care of the frontend implementa
 
 Example:
 
-```
+```yaml
 croppingConfiguration:
   tx_news_domain_model_news:
     _all:
@@ -423,7 +423,7 @@ If your field references other records that have image fields in them you can us
 Example: You have a "Contacts" content element, which a field field, that holds an arbitrary number of contact records.
 Each contact has a square photo.
 
-```
+```yaml
 croppingConfiguration:
   # We want to target content elements of the type tx_myext_contacts
   tt_content:
