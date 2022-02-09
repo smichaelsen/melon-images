@@ -102,7 +102,7 @@ class TcaService
                 ];
             }
             foreach ($sizeConfig['allowedRatios'] as $allowedRatioKey => $allowedRatioConfig) {
-                $dimensions = new Dimensions($allowedRatioConfig['width'], $allowedRatioConfig['height'], $allowedRatioConfig['ratio']);
+                $dimensions = new Dimensions($allowedRatioConfig['width'] ?? null, $allowedRatioConfig['height'] ?? null, $allowedRatioConfig['ratio'] ?? null);
                 $sizeConfig['allowedRatios'][$allowedRatioKey]['width'] = $dimensions->getWidth();
                 $sizeConfig['allowedRatios'][$allowedRatioKey]['height'] = $dimensions->getHeight();
             }
@@ -118,7 +118,7 @@ class TcaService
             return [];
         }
         foreach ($fieldConfig['variants'] as $variantIdentifier => $variantConfig) {
-            $variantTitle = $variantConfig['title'] ?: ucfirst($variantIdentifier);
+            $variantTitle = ($variantConfig['title'] ?? '') ?: ucfirst($variantIdentifier);
             $aspectRatioConfigs = self::getAspectRatiosFromSizes($variantConfig['sizes']);
             foreach ($aspectRatioConfigs as $aspectRatioIdentifier => $aspectRatioConfig) {
                 if (count($aspectRatioConfigs) === 1) {

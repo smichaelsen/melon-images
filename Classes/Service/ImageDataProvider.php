@@ -130,7 +130,7 @@ class ImageDataProvider implements SingletonInterface
                 $sizeConfiguration = $sizeConfiguration['allowedRatios'][$selectedRatio];
             }
         }
-        $dimensions = new Dimensions($sizeConfiguration['width'], $sizeConfiguration['height'], $sizeConfiguration['ratio']);
+        $dimensions = new Dimensions($sizeConfiguration['width'] ?? null, $sizeConfiguration['height'] ?? null, $sizeConfiguration['ratio'] ?? null);
         return $dimensions->scale($pixelDensity);
     }
 
@@ -188,15 +188,15 @@ class ImageDataProvider implements SingletonInterface
     {
         $breakpointsConfig = $this->getBreakpoints();
         $breakpoints = [];
-        if (!is_array($sizeConfiguration['breakpoints'])) {
-            $sizeConfiguration['breakpoints'] = GeneralUtility::trimExplode(',', $sizeConfiguration['breakpoints']);
+        if (!is_array($sizeConfiguration['breakpoints'] ?? false)) {
+            $sizeConfiguration['breakpoints'] = GeneralUtility::trimExplode(',', $sizeConfiguration['breakpoints'] ?? '');
         }
         foreach ($sizeConfiguration['breakpoints'] as $breakpointName) {
             $constraints = [];
-            if ($breakpointsConfig[$breakpointName]['from']) {
+            if ($breakpointsConfig[$breakpointName]['from'] ?? false) {
                 $constraints[] = '(min-width: ' . $breakpointsConfig[$breakpointName]['from'] . 'px)';
             }
-            if ($breakpointsConfig[$breakpointName]['to']) {
+            if ($breakpointsConfig[$breakpointName]['to'] ?? false) {
                 $constraints[] = '(max-width: ' . $breakpointsConfig[$breakpointName]['to'] . 'px)';
             }
             if (empty($constraints)) {
