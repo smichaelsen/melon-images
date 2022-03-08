@@ -10,9 +10,7 @@ use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\FileReference;
 use TYPO3\CMS\Core\Resource\ProcessedFile;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Domain\Model\FileReference as ExtbaseFileReferenceModel;
-use TYPO3\CMS\Extbase\Object\ObjectManager;
 use TYPO3\CMS\Extbase\Service\ImageService;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper;
 use TYPO3Fluid\Fluid\Core\ViewHelper\TagBuilder;
@@ -23,11 +21,18 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
 
     protected ImageDataProvider $imageDataProvider;
 
+    protected ImageService $imageService;
+
     protected ResourceFactory $resourceFactory;
 
     public function injectImageDataProvider(ImageDataProvider $imageDataProvider)
     {
         $this->imageDataProvider = $imageDataProvider;
+    }
+
+    public function injectImageService(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
     }
 
     public function injectResourceFactory(ResourceFactory $resourceFactory)
@@ -83,16 +88,14 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
 
         if ($variantData === null) {
             // variant data could not be loaded. fallback rendering (without taking care of image size or aspect ratio):
-            $imageService = GeneralUtility::makeInstance(ObjectManager::class)->get(ImageService::class);
             $tagContent = $this->renderImageTag(
-                $this->getImageUri($fileReference, $imageService),
+                $this->getImageUri($fileReference),
                 (string)$fileReference->getAlternative(),
                 (string)$fileReference->getTitle(),
                 $this->arguments['additionalImageAttributes']
             );
         } else {
             // auto render
-
             $additionalAttributes = (array)$this->arguments['additionalImageAttributes'];
             if (!isset($additionalAttributes['width']) && !isset($additionalAttributes['height'])) {
                 /** @var ProcessedFile $processedFile */
@@ -132,17 +135,18 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         return $tag->render();
     }
 
-    protected function getImageUri(FileReference $fileReference, ImageService $imageService): string
+    protected function getImageUri(FileReference $fileReference): string
     {
         if (!$fileReference instanceof FileReference) {
             return '';
         }
+        $imageSource = $this->imageService->getImageUri($fileReference);
         if ($fileReference->getType() !== File::FILETYPE_APPLICATION) {
-            return $imageService->getImageUri($fileReference);
+            return $imageSource;
         }
-        $image = $imageService->getImage($imageService->getImageUri($fileReference), $fileReference, true);
+        $image = $this->imageService->getImage($imageSource, $fileReference, true);
         $processingInstructions = [];
-        $processedImage = $imageService->applyProcessingInstructions($image, $processingInstructions);
+        $processedImage = $this->imageService->applyProcessingInstructions($image, $processingInstructions);
         return $processedImage->getPublicUrl();
     }
 }
