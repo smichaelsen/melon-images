@@ -41,7 +41,7 @@ class ImageDataProvider implements SingletonInterface
         $matchingCropConfiguration = array_filter($cropConfiguration, function ($cropVariantId) use ($variant) {
             // the variant is the second last segment in the cropVariantId
             $segments = explode('__', $cropVariantId);
-            return $variant === $segments[count($segments) - 2];
+            return $variant === ($segments[count($segments) - 2] ?? false);
         }, ARRAY_FILTER_USE_KEY);
         $cropVariants = CropVariantCollection::create(json_encode($matchingCropConfiguration));
         $cropVariantIds = array_keys($matchingCropConfiguration);
