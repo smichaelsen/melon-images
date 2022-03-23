@@ -141,7 +141,7 @@ class TcaService
                             ];
                         } else {
                             $cropVariantsTca[$cropVariantKey]['allowedAspectRatios']['NaN'] = [
-                                'title' => $dimensionConfig['title'] ?: 'LLL:EXT:core/Resources/Private/Language/locallang_wizards.xlf:imwizard.ratio.free',
+                                'title' => $dimensionConfig['title'] ?? 'LLL:EXT:core/Resources/Private/Language/locallang_wizards.xlf:imwizard.ratio.free',
                                 'value' => .0,
                             ];
                         }
