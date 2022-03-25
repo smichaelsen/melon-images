@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Smichaelsen\MelonImages\Domain\Dto;
 
-class Set
+class Set implements \JsonSerializable
 {
     protected string $imageUri = '';
 
@@ -33,5 +33,13 @@ class Set
     public function __toString(): string
     {
         return $this->imageUri . ' ' . $this->pixelDensity . 'x';
+    }
+
+    public function jsonSerialize(): array
+    {
+        return [
+            'uri' => $this->imageUri,
+            'pixelDensity' => $this->pixelDensity,
+        ];
     }
 }

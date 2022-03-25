@@ -6,7 +6,7 @@ namespace Smichaelsen\MelonImages\Domain\Dto;
 
 use TYPO3Fluid\Fluid\Core\ViewHelper\TagBuilder;
 
-class Source
+class Source implements \JsonSerializable
 {
     protected Dimensions $dimensions;
 
@@ -65,5 +65,24 @@ class Source
             $tag->addAttribute('media', $this->mediaQuery);
         }
         return $tag->render();
+    }
+
+    public function jsonSerialize(): array
+    {
+        $return = [
+            'srcsets' => $this->sets,
+            'mediaQuery' => $this->mediaQuery,
+        ];
+
+        $height = $this->dimensions->getHeight();
+        if ($height !== null) {
+            $return['height'] = $height;
+        }
+        $width = $this->dimensions->getWidth();
+        if ($width !== null) {
+            $return['width'] = $width;
+        }
+
+        return $return;
     }
 }
