@@ -55,6 +55,11 @@ class ConfigurationLoader
                 $this->readConfigurationFile($configurationFile)
             );
         }
+        $configuration = array_filter(
+            $configuration,
+            fn ($key) => !str_starts_with($key, '__'),
+            ARRAY_FILTER_USE_KEY
+        );
         $this->configuration = $configuration;
         $this->cache->set($key, $configuration);
     }
