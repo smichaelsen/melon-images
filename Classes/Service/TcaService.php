@@ -47,7 +47,13 @@ class TcaService
             );
         } else {
             foreach ($fieldConfig as $subType => $subFields) {
+                if (!is_array($subFields)) {
+                    continue;
+                }
                 foreach ($subFields as $subFieldName => $subFieldConfig) {
+                    if (!is_array($subFieldConfig)) {
+                        continue;
+                    }
                     $subVariantPrefixParts = $variantIdPrefixParts;
                     $subVariantPrefixParts[] = $subType;
                     $subVariantPrefixParts[] = $subFieldName;
