@@ -123,6 +123,12 @@ croppingConfiguration:
 
 ```
 
+### View the configuration
+
+Beginning with TYPO3 v11 you can view your Melon Images configuration in the Configuration module.
+
+![Melon Images in the Configuration module](doc/configuration-module.png?raw=true)
+
 ## Rendering
 
 ### Auto Render
@@ -444,6 +450,21 @@ croppingConfiguration:
 ```
 
 You can nest this configuration as deep as you need it to be.
+
+## Power user hints
+
+If you use YAML anchors to reuse certain configuration snippets, prefix them with `__`. This way they will only be
+available during YAML parsing and will automatically be stripped afterwards in the parsed configuration.
+
+```
+# This follows facebook's recommendation for og:image of 1200x630
+__openGraph: &open-graph
+  title: Social Sharing
+  sizes:
+    all:
+      width: 1200
+      ratio: 1.91/1
+```
 
 ## Breaking Changes
 

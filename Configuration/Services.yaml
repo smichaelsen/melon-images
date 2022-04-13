@@ -38,3 +38,10 @@ services:
     class: TYPO3\CMS\Core\Cache\Frontend\FrontendInterface
     factory: ['TYPO3\CMS\Core\Core\Bootstrap', 'createCache']
     arguments: ['melon_images']
+
+  lowlevel.configuration.module.provider.melon_images:
+    class: Smichaelsen\MelonImages\ConfigurationModuleProvider\MelonImagesConfigurationProvider
+    tags:
+      - name: 'lowlevel.configuration.module.provider'
+        identifier: 'melonImagesConfiguration'
+        label: 'Melon Images Configuration'
