@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace Smichaelsen\MelonImages\Service;
 
 use Smichaelsen\MelonImages\Domain\Dto\Dimensions;
@@ -33,45 +34,32 @@ class ImageDataProvider implements SingletonInterface
         } else {
             $crop = $fileReference->getProperty('crop');
         }
-        $cropConfiguration = json_decode((string)$crop, true);
-        if ($cropConfiguration === null) {
+        $matchingCropConfigurations = $this->getMatchingCropConfigurations((string) $crop, $variant);
+        if (count($matchingCropConfigurations) === 0) {
+            // the requested variant wasn't found in the available crop data
             return null;
         }
-        // filter for all crop configurations that match the chosen image variant
-        $matchingCropConfiguration = array_filter($cropConfiguration, function ($cropVariantId) use ($variant) {
-            // the variant is the second last segment in the cropVariantId
-            $segments = explode('__', $cropVariantId);
-            return $variant === ($segments[count($segments) - 2] ?? false);
-        }, ARRAY_FILTER_USE_KEY);
-        $cropVariants = CropVariantCollection::create(json_encode($matchingCropConfiguration));
-        $cropVariantIds = array_keys($matchingCropConfiguration);
+
+        $cropVariants = CropVariantCollection::create(json_encode($matchingCropConfigurations));
 
         $sources = [];
         $pixelDensities = $this->getPixelDensities();
-        $fallbackCropVariantId = null;
-        foreach ($cropVariantIds as $cropVariantId) {
+        foreach ($matchingCropConfigurations as $cropVariantId => $matchingCropConfiguration) {
             $sizeConfigurations = $this->getSizeConfigurations($cropVariantId);
             if (empty($sizeConfigurations)) {
-                continue;
+                return null;
             }
             foreach ($sizeConfigurations as $sizeIdentifier => $sizeConfiguration) {
-                $sources[$sizeIdentifier] = $this->createSource($sizeConfiguration, $matchingCropConfiguration[$cropVariantId]['selectedRatio'], $cropVariantId, $pixelDensities, $fileReference, $cropVariants, $absolute);
-                if ($fallbackImageSize) {
-                    if ($fallbackImageSize === $sizeIdentifier) {
-                        $fallbackCropVariantId = $cropVariantId;
-                    }
-                } else {
-                    $fallbackCropVariantId = $cropVariantId;
-                }
+                $sources[$sizeIdentifier] = $this->createSource($sizeConfiguration, $matchingCropConfiguration['selectedRatio'], $cropVariantId, $pixelDensities, $fileReference, $cropVariants, $absolute);
             }
         }
-        if ($fallbackCropVariantId === null) {
-            return null;
-        }
+
+        $fallbackCropConfiguration = array_values($matchingCropConfigurations)[0];
+        $fallbackCropVariantId = array_keys($matchingCropConfigurations)[0];
         $fallbackSizeConfigurations = $this->getSizeConfigurations($fallbackCropVariantId);
         $processingDimensions = $this->getProcessingWidthAndHeight(
             $fallbackSizeConfigurations[$fallbackImageSize] ?? end($fallbackSizeConfigurations),
-            $matchingCropConfiguration[$fallbackCropVariantId]['selectedRatio']
+            $fallbackCropConfiguration['selectedRatio']
         );
         $processedFallbackImage = $this->processImage($fileReference, $processingDimensions, $cropVariants->getCropArea($fallbackCropVariantId));
         $fallbackImageConfig = [
@@ -81,9 +69,27 @@ class ImageDataProvider implements SingletonInterface
         ];
 
         return [
+            'cropConfigurations' => array_values($matchingCropConfigurations),
             'sources' => $sources,
             'fallbackImage' => $fallbackImageConfig,
         ];
+    }
+
+    protected function getMatchingCropConfigurations(string $cropData, string $variantName): array
+    {
+        $cropConfiguration = json_decode($cropData, true);
+        if (!is_array($cropConfiguration)) {
+            return [];
+        }
+        $matchingCropConfigurations = [];
+        foreach ($cropConfiguration as $cropVariantId => $singleCropConfiguration) {
+            // the variant is the second last segment in the cropVariantId
+            $segments = explode('__', $cropVariantId);
+            if ($variantName === ($segments[count($segments) - 2] ?? false)) {
+                $matchingCropConfigurations[$cropVariantId] = $singleCropConfiguration;
+            }
+        }
+        return $matchingCropConfigurations;
     }
 
     protected function createSource(array $sizeConfiguration, string $selectedRatio, string $cropVariantId, array $pixelDensities, FileReference $fileReference, CropVariantCollection $cropVariants, bool $absolute): Source
