@@ -67,11 +67,19 @@ class ImageDataProvider implements SingletonInterface
             $fallbackCropConfiguration['selectedRatio']
         );
         $processedFallbackImage = $this->processImage($fileReference, $processingDimensions, $cropVariants->getCropArea($fallbackCropVariantId));
-        $fallbackImageConfig = [
-            'src' => $this->imageService->getImageUri($processedFallbackImage, $absolute),
-            'dimensions' => $processingDimensions,
-            'processedFile' => $processedFallbackImage,
-        ];
+        if ($this->configuration['debugImageSizes'] ?? false) {
+            $fallbackImageConfig = [
+                'src' => 'https://fakeimg.pl/' . (int)$processingDimensions->getWidth() . 'x' . (int)$processingDimensions->getHeight() . '/',
+                'dimensions' => $processingDimensions,
+                'processedFile' => $processedFallbackImage,
+            ];
+        } else {
+            $fallbackImageConfig = [
+                'src' => $this->imageService->getImageUri($processedFallbackImage, $absolute),
+                'dimensions' => $processingDimensions,
+                'processedFile' => $processedFallbackImage,
+            ];
+        }
 
         return [
             'cropConfigurations' => array_values($matchingCropConfigurations),
@@ -106,7 +114,11 @@ class ImageDataProvider implements SingletonInterface
         foreach ($pixelDensities as $pixelDensity) {
             $processingDimensions = $this->getProcessingWidthAndHeight($sizeConfiguration, $selectedRatio, (float)$pixelDensity);
             $processedImage = $this->processImage($fileReference, $processingDimensions, $cropVariants->getCropArea($cropVariantId));
-            $imageUri = $this->imageService->getImageUri($processedImage, $absolute);
+            if ($this->configuration['debugImageSizes'] ?? false) {
+                $imageUri = 'https://fakeimg.pl/' . (int)$processingDimensions->getWidth() . 'x' . (int)$processingDimensions->getHeight() . '/';
+            } else {
+                $imageUri = $this->imageService->getImageUri($processedImage, $absolute);
+            }
             $set = new Set();
             $set->setImageUri($imageUri);
             $set->setPixelDensity((float)$pixelDensity);
