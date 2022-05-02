@@ -44,18 +44,23 @@ class ImageDataProvider implements SingletonInterface
 
         $sources = [];
         $pixelDensities = $this->getPixelDensities();
+        $fallbackCropVariantId = null;
         foreach ($matchingCropConfigurations as $cropVariantId => $matchingCropConfiguration) {
             $sizeConfigurations = $this->getSizeConfigurations($cropVariantId);
             if (empty($sizeConfigurations)) {
-                return null;
+                continue;
             }
+            $fallbackCropVariantId = $cropVariantId;
             foreach ($sizeConfigurations as $sizeIdentifier => $sizeConfiguration) {
                 $sources[$sizeIdentifier] = $this->createSource($sizeConfiguration, $matchingCropConfiguration['selectedRatio'], $cropVariantId, $pixelDensities, $fileReference, $cropVariants, $absolute);
             }
         }
 
-        $fallbackCropConfiguration = array_values($matchingCropConfigurations)[0];
-        $fallbackCropVariantId = array_keys($matchingCropConfigurations)[0];
+        if ($fallbackCropVariantId === null) {
+            return null;
+        }
+
+        $fallbackCropConfiguration = $matchingCropConfigurations[$fallbackCropVariantId];
         $fallbackSizeConfigurations = $this->getSizeConfigurations($fallbackCropVariantId);
         $processingDimensions = $this->getProcessingWidthAndHeight(
             $fallbackSizeConfigurations[$fallbackImageSize] ?? end($fallbackSizeConfigurations),
