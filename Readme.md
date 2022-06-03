@@ -359,7 +359,7 @@ If you provide `width` and `height` it results in a fixed aspect ratio that is e
 
 `croppingConfiguration.<table>.<recordType>.<fieldName>.variants.<variantName>.sizes.<sizeName>.coverAreas`
 
-Array of cover areas. See the [TCA Reference](https://docs.typo3.org/typo3cms/TCAReference/ColumnsConfig/Type/ImageManipulation.html#cropvariants) for details on that feature.
+Array of cover areas. See the [TCA Reference](https://docs.typo3.org/m/typo3/reference-tca/main/en-us/ColumnsConfig/Type/ImageManipulation/Properties/CropVariants.html#define-cover-areas) for details on that feature.
 
 Each cover area needs has following properties:
 
