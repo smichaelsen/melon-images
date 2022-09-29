@@ -95,6 +95,9 @@ class CreateNeededCroppings extends Command
         $type = array_shift($tcaPath);
         $fieldName = array_shift($tcaPath);
         $fieldTca = $this->getFieldTca($localTableName, $type, $fieldName);
+        if ($fieldTca === null) {
+            return;
+        }
         $foreignTableName = $this->getForeignTableName($fieldTca['config']);
         if ($foreignTableName === null) {
             return;
@@ -216,7 +219,7 @@ class CreateNeededCroppings extends Command
 
     protected function getForeignTableName(array $fieldConfig): ?string
     {
-        if ($fieldConfig['type'] === 'inline' && $fieldConfig['MM']) {
+        if ($fieldConfig['type'] === 'inline' && ($fieldConfig['MM'] ?? false)) {
             // todo: Implement inline with MM
             return null;
         }
@@ -233,7 +236,7 @@ class CreateNeededCroppings extends Command
     protected function queryForeignUids(string $localTableName, string $foreignTableName, array $fieldConfig, string $localType, array $localUids = null): array
     {
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($foreignTableName);
-        if ($fieldConfig['type'] === 'inline' && $fieldConfig['MM']) {
+        if ($fieldConfig['type'] === 'inline' && ($fieldConfig['MM'] ?? false)) {
             // todo: Implement inline with MM
             return [];
         }
@@ -253,7 +256,7 @@ class CreateNeededCroppings extends Command
                 $queryBuilder->andWhere($queryBuilder->expr()->in($foreignTableName . '.' . $fieldConfig['foreign_field'], $localUids));
             }
 
-            $typeField = $GLOBALS['TCA'][$localTableName]['ctrl']['type'];
+            $typeField = $GLOBALS['TCA'][$localTableName]['ctrl']['type'] ?? '';
             $queryBuilder->join(
                 $foreignTableName,
                 $localTableName,
@@ -263,7 +266,7 @@ class CreateNeededCroppings extends Command
             if ($localType !== '_all') {
                 $queryBuilder->andWhere($queryBuilder->expr()->eq($localTableName . '.' . $typeField, $queryBuilder->createNamedParameter($localType)));
             }
-            return array_map(function (array $record) {
+            return array_map(static function (array $record) {
                 return $record['uid'];
             }, $queryBuilder->execute()->fetchAll());
         } elseif ($fieldConfig['type'] === 'select') {
@@ -288,9 +291,12 @@ class CreateNeededCroppings extends Command
 
     protected function getFieldTca(string $table, string $type, string $fieldName)
     {
-        $tableTca = $GLOBALS['TCA'][$table];
-        $fieldTca = $tableTca['columns'][$fieldName];
-        if ($tableTca['ctrl']['type'] && $type !== '_all') {
+        $tableTca = $GLOBALS['TCA'][$table] ?? null;
+        $fieldTca = $tableTca['columns'][$fieldName] ?? null;
+        if (!$tableTca || !$fieldTca) {
+            return null;
+        }
+        if (($tableTca['ctrl']['type'] ?? false) && $type !== '_all') {
             $fieldTca = array_replace_recursive($fieldTca, $tableTca['types'][$type]['columnsOverrides'][$fieldName] ?? []);
         }
         return $fieldTca;
