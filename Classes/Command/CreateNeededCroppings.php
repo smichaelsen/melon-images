@@ -68,6 +68,7 @@ class CreateNeededCroppings extends Command
         } else {
             $message .= 'No croppings were missing.';
         }
+        $output->writeln($message);
         $this->addFlashMessage($message, FlashMessage::INFO);
         return 0;
     }
