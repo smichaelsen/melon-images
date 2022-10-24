@@ -1,5 +1,5 @@
 # Melon Images
-**Responsive Images Management for TYPO3**
+**Responsive Image Management for TYPO3**
 
 This package uses the powerful responsive image cropping capabilities of TYPO3 and provides easy frontend rendering.
 
