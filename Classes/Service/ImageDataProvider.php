@@ -34,7 +34,7 @@ class ImageDataProvider implements SingletonInterface
         } else {
             $crop = $fileReference->getProperty('crop');
         }
-        $matchingCropConfigurations = $this->getMatchingCropConfigurations((string) $crop, $variant);
+        $matchingCropConfigurations = $this->getMatchingCropConfigurations((string)$crop, $variant);
         if (count($matchingCropConfigurations) === 0) {
             // the requested variant wasn't found in the available crop data
             return null;
