@@ -255,7 +255,22 @@ pixelDensities:
   - 2
 ```
 
-### 3. Per Table and Type Configuration
+### 3. Progressive Image File Formats
+
+`progressiveFileFormats`
+
+Array or comma separated list of file formats that are rendered additionally to the default image file format TYPO3 renders, which is typically `jpg` or `png`.
+
+Example:
+
+```yaml
+progressiveFileFormats:
+  - webp
+```
+
+This will add `<source>` elements to the responsive picture element with the `webp` file formats. To browser will fall back to the default image format if `webp` is not supported.
+
+### 4. Per Table and Type Configuration
 
 `croppingConfiguration.<table>.<recordType>`
 
@@ -273,7 +288,7 @@ croppingConfiguration:
       # applies only to tt_content records with type (CType) textmedia
 ```
 
-### 4. Per Field Configuration
+### 5. Per Field Configuration
 
 `croppingConfiguration.<table>.<recordType>.<fieldName>`
 
@@ -285,7 +300,7 @@ The field must be:
 
 2. A field of the type `inline`, `select` or `group` referencing other records (See *7. Inline Records*)
 
-### 5. Variants
+### 6. Variants
 
 `croppingConfiguration.<table>.<recordType>.<fieldName>.variants`
 
@@ -307,13 +322,13 @@ croppingConfiguration:
 
 Reuse the variant name in the `variant` attribute of the `melon:responsivePicture` ViewHelper.
 
-### 5.1 Variant Configuration
+### 6.1 Variant Configuration
 
 `croppingConfiguration.<table>.<recordType>.<fieldName>.variants.<variantName>`
 
 `title` (optional): Title of the variant that is shown to the backend user. Per default the variant name (with the first letter uppercased) is used.
 
-### 6. Sizes
+### 7. Sizes
 
 `croppingConfiguration.<table>.<recordType>.<fieldName>.variants.<variantName>.sizes`
 
@@ -340,7 +355,7 @@ croppingConfiguration:
               # ...
 ```
 
-### 6.1 Size Configuration
+### 7.1 Size Configuration
 
 `croppingConfiguration.<table>.<recordType>.<fieldName>.variants.<variantName>.sizes.<sizeName>`
 
@@ -355,7 +370,7 @@ In the frontend they are still rendered as different sizes for different breakpo
 
 If you provide `width` and `height` it results in a fixed aspect ratio that is enforced in the backend cropping tool. Neat!
 
-### 6.1.1 Cover Areas
+### 7.1.1 Cover Areas
 
 `croppingConfiguration.<table>.<recordType>.<fieldName>.variants.<variantName>.sizes.<sizeName>.coverAreas`
 
@@ -387,7 +402,7 @@ croppingConfiguration:
                   height: 1
 ```
 
-### 6.1.2 Focus Area
+### 7.1.2 Focus Area
 
 `croppingConfiguration.<table>.<recordType>.<fieldName>.variants.<variantName>.sizes.<sizeName>.focusArea`
 
@@ -420,7 +435,7 @@ croppingConfiguration:
                 height: 0.2
 ```
 
-### 7. Inline Records (Nested Records)
+### 8. Inline Records (Nested Records)
 
 `croppingConfiguration.<table>.<recordType>.<fieldName>.<subType>.<subField>`
 
