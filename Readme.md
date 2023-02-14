@@ -270,6 +270,8 @@ progressiveFileFormats:
 
 This will add `<source>` elements to the responsive picture element with the `webp` file formats. To browser will fall back to the default image format if `webp` is not supported.
 
+Make sure you add the desired file extensions to `$GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext']`.
+
 ### 4. Per Table and Type Configuration
 
 `croppingConfiguration.<table>.<recordType>`
