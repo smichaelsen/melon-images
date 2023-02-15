@@ -103,14 +103,7 @@ class Source implements \JsonSerializable
     {
         switch ($fileExtension) {
             case 'jpg':
-            case 'jpeg':
                 return 'image/jpeg';
-            case 'png':
-                return 'image/png';
-            case 'gif':
-                return 'image/gif';
-            case 'webp':
-                return 'image/webp';
             default:
                 return 'image/' . $fileExtension;
         }
