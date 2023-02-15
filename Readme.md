@@ -257,18 +257,26 @@ pixelDensities:
 
 ### 3. Progressive Image File Formats
 
-`progressiveFileFormats`
+`imageFileFormats`
 
-Array or comma separated list of file formats that are rendered additionally to the default image file format TYPO3 renders, which is typically `jpg` or `png`.
+By default TYPO3 will automatically choose broadly supported file formats like `jpg` or `png`, depending on the source image. You can override this behavior by specifying a list of file formats that should be used for progressive image rendering.
 
 Example:
 
 ```yaml
-progressiveFileFormats:
+imageFileFormats:
+  - webp
+  - _default
+```
+
+This will add `<source>` elements to the responsive picture element with the `webp` file formats. As well as the default file format. You can also omit the default file format:
+
+```yaml
+imageFileFormats:
   - webp
 ```
 
-This will add `<source>` elements to the responsive picture element with the `webp` file formats. To browser will fall back to the default image format if `webp` is not supported.
+The fallback image will always be rendered in the `_default` file format to support legacy browsers.
 
 Make sure you add the desired file extensions to `$GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext']`.
 
