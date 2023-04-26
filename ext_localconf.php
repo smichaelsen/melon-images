@@ -1,7 +1,5 @@
 <?php
 
-defined('TYPO3_MODE') || die();
-
 $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['melonImagesMigrateSchedulerTask'] = \Smichaelsen\MelonImages\Updates\MigrateSchedulerTask::class;
 
 $GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['melon_images'] = [
