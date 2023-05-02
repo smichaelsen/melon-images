@@ -6,7 +6,7 @@ namespace Smichaelsen\MelonImages\Domain\Dto;
 
 use TYPO3\CMS\Core\Utility\MathUtility;
 
-class Dimensions
+class Dimensions implements \JsonSerializable
 {
     private const FREE_RATIO_IDENTIFIER = 'free';
 
@@ -55,6 +55,15 @@ class Dimensions
     public function isFree(): bool
     {
         return $this->ratio === null;
+    }
+
+    public function jsonSerialize(): array
+    {
+        $result = [
+            'height' => $this->height,
+            'width' => $this->width,
+        ];
+        return $result;
     }
 
     public function scale(float $factor): Dimensions
