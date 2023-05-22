@@ -6,7 +6,7 @@ namespace Smichaelsen\MelonImages\Service;
 use Smichaelsen\MelonImages\Domain\Dto\Dimensions;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 
-class TcaService
+class LegacyTcaService
 {
     private array $configuration;
 
