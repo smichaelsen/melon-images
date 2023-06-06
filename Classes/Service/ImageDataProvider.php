@@ -193,7 +193,7 @@ class ImageDataProvider implements SingletonInterface
 
     protected function getBreakpoints(): array
     {
-        $breakpoints = $this->configuration['breakpoints'];
+        $breakpoints = $this->configuration['breakpoints'] ?? [];
         if (is_string($breakpoints)) {
             $breakpoints = GeneralUtility::trimExplode(',', $breakpoints);
         }
@@ -202,7 +202,7 @@ class ImageDataProvider implements SingletonInterface
 
     protected function getImageFileFormats(): array
     {
-        $imageFileFormats = $this->configuration['imageFileFormats'];
+        $imageFileFormats = $this->configuration['imageFileFormats'] ?? '';
         if (empty($imageFileFormats)) {
             return ['_default'];
         }
@@ -214,7 +214,7 @@ class ImageDataProvider implements SingletonInterface
 
     protected function getPixelDensities(): array
     {
-        $pixelDensities = $this->configuration['pixelDensities'];
+        $pixelDensities = $this->configuration['pixelDensities'] ?? '';
         if (empty($pixelDensities)) {
             return ['1'];
         }
