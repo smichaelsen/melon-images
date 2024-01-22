@@ -115,7 +115,7 @@ class ImageDataProvider implements SingletonInterface
         $source = new Source(
             $this->getMediaQueryFromSizeConfig($sizeConfiguration),
             $this->getProcessingWidthAndHeight($sizeConfiguration, $selectedRatio),
-            $imageFileFormat === '_default' ? null : 'image/' . $imageFileFormat,
+            $imageFileFormat === '_default' ? $fileReference->getMimeType() : 'image/' . $imageFileFormat,
         );
         foreach ($pixelDensities as $pixelDensity) {
             $processingDimensions = $this->getProcessingWidthAndHeight($sizeConfiguration, $selectedRatio, (float)$pixelDensity);
