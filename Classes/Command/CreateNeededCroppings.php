@@ -149,7 +149,7 @@ class CreateNeededCroppings extends Command
                         if (isset($aspectRatioConfig['allowedRatios'])) {
                             $defaultRatio = $selectedRatio = $this->getDefaultRatioKey($aspectRatioConfig['allowedRatios']);
                             $allowedRatioConfig = $aspectRatioConfig['allowedRatios'][$defaultRatio];
-                            $dimensions = new Dimensions($allowedRatioConfig['width'], $allowedRatioConfig['height'], $allowedRatioConfig['ratio']);
+                            $dimensions = new Dimensions($allowedRatioConfig['width'] ?? null, $allowedRatioConfig['height'] ?? null, $allowedRatioConfig['ratio'] ?? null);
                             if ($dimensions->isFree()) {
                                 $selectedRatio = 'NaN';
                                 $cropArea = [
@@ -208,7 +208,7 @@ class CreateNeededCroppings extends Command
     {
         // try to find a "free" ratio
         foreach ($allowedRatios as $ratioKey => $ratioConfig) {
-            $dimensions = new Dimensions($ratioConfig['width'], $ratioConfig['height'], $ratioConfig['ratio']);
+            $dimensions = new Dimensions($ratioConfig['width'] ?? null, $ratioConfig['height'] ?? null, $ratioConfig['ratio'] ?? null);
             if ($dimensions->isFree()) {
                 return $ratioKey;
             }
