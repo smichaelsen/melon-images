@@ -45,8 +45,11 @@ class ConfigurationLoader
     {
         $key = 'melonImagesConfiguration';
         if ($this->cache->has($key)) {
-            $this->configuration = $this->cache->get($key);
-            return;
+            $valueFromCache = $this->cache->get($key);
+            if (is_array($valueFromCache)) {
+                $this->configuration = $valueFromCache;
+                return;
+            }
         }
         $configuration = [];
         foreach ($this->findMelonImagesConfigurationFiles() as $configurationFile) {
