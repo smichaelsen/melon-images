@@ -224,7 +224,7 @@ class CreateNeededCroppings extends Command
             // todo: Implement inline with MM
             return null;
         }
-        if ($fieldConfig['type'] === 'inline') {
+        if ($fieldConfig['type'] === 'inline' || $fieldConfig['type'] === 'file') {
             return $fieldConfig['foreign_table'];
         }
         if ($fieldConfig['type'] === 'select') {
@@ -241,7 +241,7 @@ class CreateNeededCroppings extends Command
             // todo: Implement inline with MM
             return [];
         }
-        if ($fieldConfig['type'] === 'inline') {
+        if ($fieldConfig['type'] === 'inline' || $fieldConfig['type'] === 'file') {
             $queryBuilder
                 ->select($foreignTableName . '.uid')
                 ->from($foreignTableName);
