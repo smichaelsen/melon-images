@@ -255,7 +255,7 @@ class ImageDataProvider implements SingletonInterface
         static $melonConfigPerTcaPath = [];
         if (!isset($melonConfigPerTcaPath[$configurationPath])) {
             try {
-                $melonConfigPerTcaPath[$configurationPath] = ArrayUtility::getValueByPath($this->configuration['croppingConfiguration'], $configurationPath);
+                $melonConfigPerTcaPath[$configurationPath] = ArrayUtility::getValueByPath($this->configuration['croppingConfiguration'] ?? [], $configurationPath);
             } catch (\RuntimeException $e) {
                 // path does not exist
                 if ($e->getCode() === 1341397869) {
