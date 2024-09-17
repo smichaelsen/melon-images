@@ -34,6 +34,15 @@ class TcaService
         return $tca;
     }
 
+    public function getCropVariants(string $tableName, string $type, string$fieldName): array
+    {
+        $variantIdPrefixParts = [$tableName, $type, $fieldName];
+        if(isset($this->configuration['croppingConfiguration'][$tableName][$type][$fieldName])) {
+            return self::createCropVariantsTcaForField($this->configuration['croppingConfiguration'][$tableName][$type][$fieldName], $variantIdPrefixParts);
+        }
+        return [];
+    }
+
     protected static function writeFieldConfigToTCA(array $tableTca, string $type, string $fieldName, array $fieldConfig, array $variantIdPrefixParts): array
     {
         $fieldPath = self::getFieldTcaPath($fieldName, $type);
