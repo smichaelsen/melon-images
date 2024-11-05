@@ -19,25 +19,13 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
 {
     protected $tagName = 'picture';
 
-    protected ImageDataProvider $imageDataProvider;
-
-    protected ImageService $imageService;
-
-    protected ResourceFactory $resourceFactory;
-
-    public function injectImageDataProvider(ImageDataProvider $imageDataProvider)
+    public function __construct(
+        protected ImageDataProvider $imageDataProvider,
+        protected ImageService $imageService,
+        protected ResourceFactory $resourceFactory
+    )
     {
-        $this->imageDataProvider = $imageDataProvider;
-    }
-
-    public function injectImageService(ImageService $imageService)
-    {
-        $this->imageService = $imageService;
-    }
-
-    public function injectResourceFactory(ResourceFactory $resourceFactory)
-    {
-        $this->resourceFactory = $resourceFactory;
+        parent::__construct();
     }
 
     public function initializeArguments()
