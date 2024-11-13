@@ -10,6 +10,7 @@ use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\FileReference;
 use TYPO3\CMS\Core\Resource\ProcessedFile;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Domain\Model\FileReference as ExtbaseFileReferenceModel;
 use TYPO3\CMS\Extbase\Service\ImageService;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper;
@@ -80,7 +81,8 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
                 $this->getImageUri($fileReference),
                 (string)$fileReference->getAlternative(),
                 (string)$fileReference->getTitle(),
-                $this->arguments['additionalImageAttributes']
+                $this->arguments['additionalImageAttributes'],
+                $this->arguments['absolute']
             );
         } else {
             // auto render
@@ -101,7 +103,8 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
                 $variantData['fallbackImage']['src'],
                 (string)$fileReference->getAlternative(),
                 (string)$fileReference->getTitle(),
-                $additionalAttributes
+                $additionalAttributes,
+                $this->arguments['absolute']
             );
         }
 
@@ -109,8 +112,11 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         return $this->tag->render();
     }
 
-    protected function renderImageTag(string $src, string $alternative = '', string $title = null, array $additionalAttributes = []): string
+    protected function renderImageTag(string $src, string $alternative = '', string $title = null, array $additionalAttributes = [], bool $absolute = false): string
     {
+        if ($absolute) {
+            $src = GeneralUtility::locationHeaderUrl($src);
+        }
         $tag = new TagBuilder('img');
         $tag->addAttribute('src', $src);
         $tag->addAttribute('alt', $alternative);

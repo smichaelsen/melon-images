@@ -194,7 +194,7 @@ class ImageDataProvider implements SingletonInterface
 
     protected function getBreakpoints(): array
     {
-        $breakpoints = $this->configuration['breakpoints'];
+        $breakpoints = $this->configuration['breakpoints'] ?? [];
         if (is_string($breakpoints)) {
             $breakpoints = GeneralUtility::trimExplode(',', $breakpoints);
         }
@@ -215,7 +215,7 @@ class ImageDataProvider implements SingletonInterface
 
     protected function getPixelDensities(): array
     {
-        $pixelDensities = $this->configuration['pixelDensities'];
+        $pixelDensities = $this->configuration['pixelDensities'] ?? '';
         if (empty($pixelDensities)) {
             return ['1'];
         }
@@ -256,7 +256,7 @@ class ImageDataProvider implements SingletonInterface
         static $melonConfigPerTcaPath = [];
         if (!isset($melonConfigPerTcaPath[$configurationPath])) {
             try {
-                $melonConfigPerTcaPath[$configurationPath] = ArrayUtility::getValueByPath($this->configuration['croppingConfiguration'], $configurationPath);
+                $melonConfigPerTcaPath[$configurationPath] = ArrayUtility::getValueByPath($this->configuration['croppingConfiguration'] ?? [], $configurationPath);
             } catch (\RuntimeException $e) {
                 // path does not exist
                 if ($e->getCode() === 1341397869) {
