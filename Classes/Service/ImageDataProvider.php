@@ -15,6 +15,7 @@ use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Service\ImageService;
+use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 
 class ImageDataProvider implements SingletonInterface
 {
@@ -135,8 +136,8 @@ class ImageDataProvider implements SingletonInterface
         if ($cropArea instanceof Area && !$cropArea->isEmpty()) {
             $processingInstructions['crop'] = $cropArea->makeAbsoluteBasedOnFile($fileReference);
         }
-        $processingInstructions['width'] = $dimensions->getWidth();
-        $processingInstructions['height'] = $dimensions->getHeight();
+        $processingInstructions['width'] = (int)$dimensions->getWidth();
+        $processingInstructions['height'] = (int)$dimensions->getHeight();
         if ($imageFileFormat !== '_default') {
             $processingInstructions['fileExtension'] = $imageFileFormat;
         }
@@ -202,7 +203,7 @@ class ImageDataProvider implements SingletonInterface
 
     protected function getImageFileFormats(): array
     {
-        $imageFileFormats = $this->configuration['imageFileFormats'] ?? '';
+        $imageFileFormats = $this->configuration['imageFileFormats'] ?? [];
         if (empty($imageFileFormats)) {
             return ['_default'];
         }
