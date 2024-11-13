@@ -13,6 +13,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Messaging\FlashMessageService;
+use TYPO3\CMS\Core\Type\ContextualFeedbackSeverity;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Service\ImageService;
@@ -69,7 +70,7 @@ class CreateNeededCroppings extends Command
             $message .= 'No croppings were missing.';
         }
         $output->writeln($message);
-        $this->addFlashMessage($message, FlashMessage::INFO);
+        $this->addFlashMessage($message, ContextualFeedbackSeverity::INFO);
         return 0;
     }
 
@@ -200,7 +201,7 @@ class CreateNeededCroppings extends Command
         }
         if ($croppingsCreated > 0) {
             $this->counters['croppings'] += $croppingsCreated;
-            $this->addFlashMessage($croppingsCreated . ' croppings created for ' . $variantIdPrefix, FlashMessage::OK);
+            $this->addFlashMessage($croppingsCreated . ' croppings created for ' . $variantIdPrefix, ContextualFeedbackSeverity::OK);
         }
     }
 
