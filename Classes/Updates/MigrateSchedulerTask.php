@@ -5,9 +5,11 @@ namespace Smichaelsen\MelonImages\Updates;
 
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Install\Attribute\UpgradeWizard;
 use TYPO3\CMS\Install\Updates\UpgradeWizardInterface;
 use TYPO3\CMS\Scheduler\Task\ExecuteSchedulableCommandTask;
 
+#[UpgradeWizard('melon_imagesMigrateSchedulerTask')]
 class MigrateSchedulerTask implements UpgradeWizardInterface
 {
     public function getIdentifier(): string

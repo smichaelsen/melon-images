@@ -1,6 +1,11 @@
 <?php
 
-$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['melonImagesMigrateSchedulerTask'] = \Smichaelsen\MelonImages\Updates\MigrateSchedulerTask::class;
+$typo3Version = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Core\Information\Typo3Version::class);
+
+if ($typo3Version->getMajorVersion() < 12) {
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['melonImagesMigrateSchedulerTask'] =
+        \Smichaelsen\MelonImages\Updates\MigrateSchedulerTask::class;
+}
 
 $GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['melon_images'] = [
     'frontend' => \TYPO3\CMS\Core\Cache\Frontend\VariableFrontend::class,
