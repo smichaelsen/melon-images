@@ -15,7 +15,6 @@ use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Service\ImageService;
-use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 
 class ImageDataProvider implements SingletonInterface
 {
@@ -36,7 +35,7 @@ class ImageDataProvider implements SingletonInterface
             $crop = $fileReference->getProperty('crop');
         }
         $matchingCropConfigurations = $this->getMatchingCropConfigurations((string)$crop, $variant);
-        if (count($matchingCropConfigurations) === 0) {
+        if ($matchingCropConfigurations === []) {
             // the requested variant wasn't found in the available crop data
             return null;
         }

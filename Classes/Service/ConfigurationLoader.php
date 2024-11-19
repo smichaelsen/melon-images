@@ -60,7 +60,7 @@ class ConfigurationLoader
         }
         $configuration = array_filter(
             $configuration,
-            fn ($key) => !str_starts_with($key, '__'),
+            fn($key) => !str_starts_with($key, '__'),
             ARRAY_FILTER_USE_KEY
         );
         $this->configuration = $configuration;

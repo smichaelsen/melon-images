@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Smichaelsen\MelonImages\Domain\Dto;
 
-class Set implements \JsonSerializable
+class Set implements \JsonSerializable, \Stringable
 {
     protected string $imageUri = '';
 

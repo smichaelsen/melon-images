@@ -23,9 +23,8 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
     public function __construct(
         protected ImageDataProvider $imageDataProvider,
         protected ImageService $imageService,
-        protected ResourceFactory $resourceFactory
-    )
-    {
+        protected ResourceFactory $resourceFactory,
+    ) {
         parent::__construct();
     }
 
@@ -131,9 +130,6 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
 
     protected function getImageUri(FileReference $fileReference): string
     {
-        if (!$fileReference instanceof FileReference) {
-            return '';
-        }
         $imageSource = $this->imageService->getImageUri($fileReference);
         if ($fileReference->getType() !== File::FILETYPE_APPLICATION) {
             return $imageSource;

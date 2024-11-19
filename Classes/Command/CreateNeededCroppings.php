@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 namespace Smichaelsen\MelonImages\Command;
 
-use Smichaelsen\MelonImages\Domain\Dto\Dimensions;
 use Smichaelsen\MelonImages\Service\ConfigurationLoader;
-use Smichaelsen\MelonImages\Service\TcaService;
+use Smichaelsen\MelonImages\Service\DefaultCroppingProvider;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Messaging\FlashMessageService;
 use TYPO3\CMS\Core\Type\ContextualFeedbackSeverity;
-use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Service\ImageService;
 
 class CreateNeededCroppings extends Command
 {
@@ -25,31 +24,28 @@ class CreateNeededCroppings extends Command
         'types' => 0,
         'croppings' => 0,
     ];
-    protected array $configuration;
 
     protected array $counters = self::INITIAL_COUNTER_VALUES;
 
-    protected FlashMessageService $flashMessageService;
+    public function __construct(
+        private readonly ConfigurationLoader $configurationLoader,
+        private readonly ConnectionPool $connectionPool,
+        private readonly DefaultCroppingProvider $defaultCroppingProvider,
+        private readonly FlashMessageService $flashMessageService,
+    ) {
+        parent::__construct();
+    }
 
-    protected function configure()
+    protected function configure(): void
     {
         $this->setDescription('Creates default cropping configuration where it is missing for image fields configured for MelonImages');
-    }
-
-    public function injectConfigurationRegistry(ConfigurationLoader $configurationLoader)
-    {
-        $this->configuration = $configurationLoader->getConfiguration();
-    }
-
-    public function injectFlashMessageService(FlashMessageService $flashMessageService)
-    {
-        $this->flashMessageService = $flashMessageService;
     }
 
     public function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->counters = self::INITIAL_COUNTER_VALUES;
-        foreach ($this->configuration['croppingConfiguration'] as $tableName => $tableConfiguration) {
+        $configuration = $this->configurationLoader->getConfiguration();
+        foreach ($configuration['croppingConfiguration'] as $tableName => $tableConfiguration) {
             $this->counters['tables']++;
             foreach ($tableConfiguration as $type => $fields) {
                 $this->counters['types']++;
@@ -74,7 +70,7 @@ class CreateNeededCroppings extends Command
         return 0;
     }
 
-    protected function createCroppingsForVariantsWithNestedRecords(array $tcaPath, array $fieldConfig)
+    protected function createCroppingsForVariantsWithNestedRecords(array $tcaPath, array $fieldConfig): void
     {
         if (isset($fieldConfig['variants'])) {
             $this->createCroppingForVariants($tcaPath, $fieldConfig['variants'], implode('__', $tcaPath));
@@ -91,7 +87,7 @@ class CreateNeededCroppings extends Command
         }
     }
 
-    protected function createCroppingForVariants(array $tcaPath, array $variants, string $variantIdPrefix, array $localUids = null)
+    protected function createCroppingForVariants(array $tcaPath, array $variants, string $variantIdPrefix, array $localUids = null): void
     {
         $localTableName = array_shift($tcaPath);
         $type = array_shift($tcaPath);
@@ -105,15 +101,43 @@ class CreateNeededCroppings extends Command
             return;
         }
         $foreignUids = $this->queryForeignUids($localTableName, $foreignTableName, $fieldTca['config'], $type, $localUids);
-        if (count($foreignUids) === 0) {
+        if ($foreignUids === []) {
             return;
         }
-        if (count($tcaPath) > 0) {
+        if ($tcaPath !== []) {
             array_unshift($tcaPath, $foreignTableName);
             $this->createCroppingForVariants($tcaPath, $variants, $variantIdPrefix, $foreignUids);
             return;
         }
-        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file_reference');
+        $fileReferenceRecords = $this->loadFileReferenceRecords($foreignUids);
+        $croppingsCreated = 0;
+        foreach ($fileReferenceRecords as $fileReferenceRecord) {
+            $cropConfiguration = $this->defaultCroppingProvider->provideDefaultCropping($fileReferenceRecord, $variants, $variantIdPrefix);
+            if ($cropConfiguration === null) {
+                continue;
+            }
+            $newCropValue = json_encode($cropConfiguration);
+            if ($newCropValue === $fileReferenceRecord['crop']) {
+                continue;
+            }
+            $croppingsCreated += count($cropConfiguration);
+            $queryBuilder = $this->getQueryBuilder();
+            $queryBuilder
+                ->update('sys_file_reference')
+                ->set('crop', $newCropValue)
+                ->where(
+                    $queryBuilder->expr()->eq('uid', $queryBuilder->createNamedParameter($fileReferenceRecord['uid'], Connection::PARAM_INT))
+                )->executeStatement();
+        }
+        if ($croppingsCreated > 0) {
+            $this->counters['croppings'] += $croppingsCreated;
+            $this->addFlashMessage($croppingsCreated . ' croppings created for ' . $variantIdPrefix, ContextualFeedbackSeverity::OK);
+        }
+    }
+
+    public function loadFileReferenceRecords(array $foreignUids): array
+    {
+        $queryBuilder = $this->getQueryBuilder();
         $queryBuilder
             ->select('ref.uid', 'ref.crop', 'file.extension', 'file.uid as fileUid', 'metadata.width', 'metadata.height')
             ->from('sys_file_reference', 'ref')
@@ -132,91 +156,7 @@ class CreateNeededCroppings extends Command
             ->where(
                 $queryBuilder->expr()->in('ref.uid', $foreignUids)
             );
-        $croppingsCreated = 0;
-        $fileReferenceRecords = $queryBuilder->executeQuery()->fetchAll();
-        foreach ($fileReferenceRecords as $fileReferenceRecord) {
-            if ((int)$fileReferenceRecord['width'] === 0 && $fileReferenceRecord['extension'] === 'pdf') {
-                $fileReferenceRecord = $this->handlePdfDimensions($fileReferenceRecord);
-            }
-            if ((int)$fileReferenceRecord['width'] === 0) {
-                continue;
-            }
-            $cropConfiguration = json_decode($fileReferenceRecord['crop'], true) ?? [];
-            foreach ($variants as $variant => $variantConfiguration) {
-                $aspectRatioConfigs = TcaService::getAspectRatiosFromSizes($variantConfiguration['sizes']);
-                foreach ($aspectRatioConfigs as $aspectRatioIdentifier => $aspectRatioConfig) {
-                    $variantId = $variantIdPrefix . '__' . $variant . '__' . $aspectRatioIdentifier;
-                    if (!isset($cropConfiguration[$variantId])) {
-                        if (isset($aspectRatioConfig['allowedRatios'])) {
-                            $defaultRatio = $selectedRatio = $this->getDefaultRatioKey($aspectRatioConfig['allowedRatios']);
-                            $allowedRatioConfig = $aspectRatioConfig['allowedRatios'][$defaultRatio];
-                            $dimensions = new Dimensions($allowedRatioConfig['width'] ?? null, $allowedRatioConfig['height'] ?? null, $allowedRatioConfig['ratio'] ?? null);
-                            if ($dimensions->isFree()) {
-                                $selectedRatio = 'NaN';
-                                $cropArea = [
-                                    'width' => 1,
-                                    'height' => 1,
-                                    'x' => 0,
-                                    'y' => 0,
-                                ];
-                            } else {
-                                $cropArea = $this->calculateCropArea(
-                                    (int)$fileReferenceRecord['width'],
-                                    (int)$fileReferenceRecord['height'],
-                                    $dimensions->getRatio()
-                                );
-                            }
-                            $cropConfiguration[$variantId] = [
-                                'cropArea' => $cropArea,
-                                'selectedRatio' => $selectedRatio,
-                                'focusArea' => null,
-                            ];
-                        } else {
-                            $cropConfiguration[$variantId] = [
-                                'cropArea' => [
-                                    'width' => 1,
-                                    'height' => 1,
-                                    'x' => 0,
-                                    'y' => 0,
-                                ],
-                                'selectedRatio' => $fileReferenceRecord['width'] . ' x ' . $fileReferenceRecord['height'],
-                                'focusArea' => null,
-                            ];
-                        }
-                        $croppingsCreated++;
-                    }
-                }
-            }
-            $newCropValue = json_encode($cropConfiguration);
-            if ($newCropValue === $fileReferenceRecord['crop']) {
-                continue;
-            }
-            $queryBuilder
-                ->resetQueryParts()
-                ->update('sys_file_reference')
-                ->set('crop', $newCropValue)
-                ->where(
-                    $queryBuilder->expr()->eq('uid', $queryBuilder->createNamedParameter($fileReferenceRecord['uid'], \PDO::PARAM_INT))
-                )->executeStatement();
-        }
-        if ($croppingsCreated > 0) {
-            $this->counters['croppings'] += $croppingsCreated;
-            $this->addFlashMessage($croppingsCreated . ' croppings created for ' . $variantIdPrefix, ContextualFeedbackSeverity::OK);
-        }
-    }
-
-    protected function getDefaultRatioKey(array $allowedRatios): string
-    {
-        // try to find a "free" ratio
-        foreach ($allowedRatios as $ratioKey => $ratioConfig) {
-            $dimensions = new Dimensions($ratioConfig['width'] ?? null, $ratioConfig['height'] ?? null, $ratioConfig['ratio'] ?? null);
-            if ($dimensions->isFree()) {
-                return $ratioKey;
-            }
-        }
-        // return the first key
-        $ratioKeys = array_keys($allowedRatios);
-        return array_shift($ratioKeys);
+        return $queryBuilder->executeQuery()->fetchAllAssociative();
     }
 
     protected function getForeignTableName(array $fieldConfig): ?string
@@ -268,27 +208,13 @@ class CreateNeededCroppings extends Command
             if ($localType !== '_all') {
                 $queryBuilder->andWhere($queryBuilder->expr()->eq($localTableName . '.' . $typeField, $queryBuilder->createNamedParameter($localType)));
             }
-            return array_map(static function (array $record) {
-                return $record['uid'];
-            }, $queryBuilder->execute()->fetchAll());
-        } elseif ($fieldConfig['type'] === 'select') {
+            return array_map(static fn(array $record) => $record['uid'], $queryBuilder->executeQuery()->fetchAllAssociative());
+        }
+        if ($fieldConfig['type'] === 'select') {
             // todo implement select
             return [];
         }
         return [];
-    }
-
-    protected function calculateCropArea(int $fileWidth, int $fileHeight, float $croppingRatio): array
-    {
-        $fileRatio = $fileWidth / $fileHeight;
-        $croppedHeightValue = min(1, $fileRatio / $croppingRatio);
-        $croppedWidthValue = min(1, $croppingRatio / $fileRatio);
-        return [
-            'width' => $croppedWidthValue,
-            'height' => $croppedHeightValue,
-            'x' => (1 - $croppedWidthValue) / 2,
-            'y' => (1 - $croppedHeightValue) / 2,
-        ];
     }
 
     protected function getFieldTca(string $table, string $type, string $fieldName)
@@ -316,13 +242,8 @@ class CreateNeededCroppings extends Command
         $this->flashMessageService->getMessageQueueByIdentifier()->addMessage($flashMessage);
     }
 
-    protected function handlePdfDimensions(array $fileReferenceRecord): array
+    private function getQueryBuilder(): QueryBuilder
     {
-        $imageService = GeneralUtility::makeInstance(ImageService::class);
-        $fileReference = GeneralUtility::makeInstance(ResourceFactory::class)->getFileReferenceObject($fileReferenceRecord['uid']);
-        $processedImage = $imageService->applyProcessingInstructions($fileReference, ['width' => null, 'height' => null, 'crop' => null]);
-        $fileReferenceRecord['height'] = $processedImage->getProperty('height');
-        $fileReferenceRecord['width'] = $processedImage->getProperty('width');
-        return $fileReferenceRecord;
+        return $this->connectionPool->getQueryBuilderForTable('sys_file_reference');
     }
 }
