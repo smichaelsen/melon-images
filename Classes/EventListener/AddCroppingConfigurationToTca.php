@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace Smichaelsen\MelonImages\EventListener;
 
 use Smichaelsen\MelonImages\Service\TcaService;

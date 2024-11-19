@@ -1,40 +1,40 @@
 <?php
 
 declare(strict_types=1);
+
 namespace Smichaelsen\MelonImages\Service;
 
-use Smichaelsen\MelonImages\Domain\Dto\Dimensions;
+use Smichaelsen\MelonImages\Service\Tca\SizesToAspectRatiosConverter;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 
 class TcaService
 {
-    private array $configuration;
-
-    public function __construct(ConfigurationLoader $configurationLoader)
-    {
-        $this->configuration = $configurationLoader->getConfiguration();
-    }
+    public function __construct(
+        private readonly ConfigurationLoader $configurationLoader,
+        private readonly SizesToAspectRatiosConverter $sizesToAspectRatiosConverter,
+    ) {}
 
     public function registerCropVariantsTca(array $tca): array
     {
-        if (empty($this->configuration)) {
+        $configuration = $this->configurationLoader->getConfiguration();
+        if (empty($configuration)) {
             return $tca;
         }
-        foreach ($this->configuration['croppingConfiguration'] as $tableName => $tableConfiguration) {
+        foreach ($configuration['croppingConfiguration'] as $tableName => $tableConfiguration) {
             if (empty($tca[$tableName])) {
                 continue;
             }
             foreach ($tableConfiguration as $type => $fields) {
                 foreach ($fields as $fieldName => $fieldConfig) {
                     $variantIdPrefixParts = [$tableName, $type, $fieldName];
-                    $tca[$tableName] = self::writeFieldConfigToTCA($tca[$tableName], (string)$type, $fieldName, $fieldConfig, $variantIdPrefixParts);
+                    $tca[$tableName] = $this->writeFieldConfigToTCA($tca[$tableName], (string)$type, $fieldName, $fieldConfig, $variantIdPrefixParts);
                 }
             }
         }
         return $tca;
     }
 
-    protected static function writeFieldConfigToTCA(array $tableTca, string $type, string $fieldName, array $fieldConfig, array $variantIdPrefixParts): array
+    protected function writeFieldConfigToTCA(array $tableTca, string $type, string $fieldName, array $fieldConfig, array $variantIdPrefixParts): array
     {
         $fieldPath = self::getFieldTcaPath($fieldName, $type);
         $childTcaPath = $fieldPath . '/config/overrideChildTca';
@@ -43,7 +43,7 @@ class TcaService
             $tableTca = ArrayUtility::setValueByPath(
                 $tableTca,
                 $cropVariantsPath,
-                self::createCropVariantsTcaForField($fieldConfig, $variantIdPrefixParts)
+                $this->createCropVariantsTcaForField($fieldConfig, $variantIdPrefixParts)
             );
         } else {
             foreach ($fieldConfig as $subType => $subFields) {
@@ -94,44 +94,15 @@ class TcaService
         return $path;
     }
 
-    public static function getAspectRatiosFromSizes(array $sizes): array
-    {
-        $aspectRatios = [];
-        foreach ($sizes as $sizeIdentifier => $sizeConfig) {
-            $identifier = $sizeConfig['ratio'] ?? $sizeIdentifier;
-            if (!isset($sizeConfig['allowedRatios']) && (isset($sizeConfig['width']) || isset($sizeConfig['height']))) {
-                $ratioIdentifier = $sizeConfig['title'] ?? $sizeConfig['ratio'] ?? ($sizeConfig['width'] . ' x ' . $sizeConfig['height']);
-                $nestedConfig = $sizeConfig;
-                $sizeConfig = [];
-                if (isset($nestedConfig['focusArea'])) {
-                    $sizeConfig['focusArea'] = $nestedConfig['focusArea'];
-                    unset($nestedConfig['focusArea']);
-                }
-                if (isset($nestedConfig['coverArea'])) {
-                    $sizeConfig['coverArea'] = $nestedConfig['coverArea'];
-                    unset($nestedConfig['coverArea']);
-                }
-                $sizeConfig['allowedRatios'][$ratioIdentifier] = $nestedConfig;
-            }
-            foreach ($sizeConfig['allowedRatios'] as $allowedRatioKey => $allowedRatioConfig) {
-                $dimensions = new Dimensions($allowedRatioConfig['width'] ?? null, $allowedRatioConfig['height'] ?? null, $allowedRatioConfig['ratio'] ?? null);
-                $sizeConfig['allowedRatios'][$allowedRatioKey]['width'] = $dimensions->getWidth();
-                $sizeConfig['allowedRatios'][$allowedRatioKey]['height'] = $dimensions->getHeight();
-            }
-            $aspectRatios[$identifier] = $sizeConfig;
-        }
-        return $aspectRatios;
-    }
-
-    protected static function createCropVariantsTcaForField(array $fieldConfig, array $variantIdPrefixParts): array
+    protected function createCropVariantsTcaForField(array $fieldConfig, array $variantIdPrefixParts): array
     {
         $cropVariantsTca = [];
         if (!isset($fieldConfig['variants'])) {
             return [];
         }
         foreach ($fieldConfig['variants'] as $variantIdentifier => $variantConfig) {
-            $variantTitle = ($variantConfig['title'] ?? '') ?: ucfirst($variantIdentifier);
-            $aspectRatioConfigs = self::getAspectRatiosFromSizes($variantConfig['sizes']);
+            $variantTitle = ($variantConfig['title'] ?? '') ?: ucfirst((string)$variantIdentifier);
+            $aspectRatioConfigs = $this->sizesToAspectRatiosConverter->getAspectRatiosFromSizes($variantConfig['sizes']);
             foreach ($aspectRatioConfigs as $aspectRatioIdentifier => $aspectRatioConfig) {
                 if (count($aspectRatioConfigs) === 1) {
                     $cropVariantTitle = $variantTitle;
@@ -159,7 +130,7 @@ class TcaService
                         }
                     }
                 }
-                if (count($cropVariantsTca[$cropVariantKey]['allowedAspectRatios']) === 0) {
+                if ($cropVariantsTca[$cropVariantKey]['allowedAspectRatios'] === []) {
                     $cropVariantsTca[$cropVariantKey]['allowedAspectRatios'] = [
                         'NaN' => [
                             'title' => 'LLL:EXT:core/Resources/Private/Language/locallang_wizards.xlf:imwizard.ratio.free',
