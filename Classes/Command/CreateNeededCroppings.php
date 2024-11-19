@@ -133,7 +133,7 @@ class CreateNeededCroppings extends Command
                 $queryBuilder->expr()->in('ref.uid', $foreignUids)
             );
         $croppingsCreated = 0;
-        $fileReferenceRecords = $queryBuilder->execute()->fetchAll();
+        $fileReferenceRecords = $queryBuilder->executeQuery()->fetchAll();
         foreach ($fileReferenceRecords as $fileReferenceRecord) {
             if ((int)$fileReferenceRecord['width'] === 0 && $fileReferenceRecord['extension'] === 'pdf') {
                 $fileReferenceRecord = $this->handlePdfDimensions($fileReferenceRecord);
@@ -197,7 +197,7 @@ class CreateNeededCroppings extends Command
                 ->set('crop', $newCropValue)
                 ->where(
                     $queryBuilder->expr()->eq('uid', $queryBuilder->createNamedParameter($fileReferenceRecord['uid'], \PDO::PARAM_INT))
-                )->execute();
+                )->executeStatement();
         }
         if ($croppingsCreated > 0) {
             $this->counters['croppings'] += $croppingsCreated;
