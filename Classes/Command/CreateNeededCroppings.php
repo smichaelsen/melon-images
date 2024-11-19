@@ -304,7 +304,7 @@ class CreateNeededCroppings extends Command
         return $fieldTca;
     }
 
-    protected function addFlashMessage(string $message, int $severity): void
+    protected function addFlashMessage(string $message, ContextualFeedbackSeverity $severity): void
     {
         $flashMessage = GeneralUtility::makeInstance(
             FlashMessage::class,
