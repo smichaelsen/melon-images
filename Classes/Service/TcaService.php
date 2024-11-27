@@ -118,15 +118,23 @@ class TcaService
                 if (isset($aspectRatioConfig['allowedRatios']) && count($aspectRatioConfig['allowedRatios']) > 0) {
                     foreach ($aspectRatioConfig['allowedRatios'] as $dimensionKey => $dimensionConfig) {
                         if (isset($dimensionConfig['height'], $dimensionConfig['width'])) {
+                            $configKey = $dimensionKey;
                             $cropVariantsTca[$cropVariantKey]['allowedAspectRatios'][$dimensionKey] = [
                                 'title' => $dimensionConfig['title'] ?? $dimensionKey,
                                 'value' => $dimensionConfig['width'] / $dimensionConfig['height'],
                             ];
                         } else {
-                            $cropVariantsTca[$cropVariantKey]['allowedAspectRatios']['NaN'] = [
+                            $configKey = 'NaN';
+                            $cropVariantsTca[$cropVariantKey]['allowedAspectRatios'][$configKey] = [
                                 'title' => $dimensionConfig['title'] ?? 'LLL:EXT:core/Resources/Private/Language/locallang_wizards.xlf:imwizard.ratio.free',
                                 'value' => .0,
                             ];
+                        }
+                        if ($dimensionConfig['coverAreas'] ?? false) {
+                            $cropVariantsTca[$cropVariantKey]['allowedAspectRatios'][$configKey]['coverAreas'] = $dimensionConfig['coverAreas'];
+                        }
+                        if ($dimensionConfig['focusAreas'] ?? false) {
+                            $cropVariantsTca[$cropVariantKey]['allowedAspectRatios'][$configKey]['focusAreas'] = $dimensionConfig['focusAreas'];
                         }
                     }
                 }
@@ -137,12 +145,6 @@ class TcaService
                             'value' => .0,
                         ],
                     ];
-                }
-                if (!empty($aspectRatioConfig['coverAreas'])) {
-                    $cropVariantsTca[$cropVariantKey]['coverAreas'] = $aspectRatioConfig['coverAreas'];
-                }
-                if (!empty($aspectRatioConfig['focusArea'])) {
-                    $cropVariantsTca[$cropVariantKey]['focusArea'] = $aspectRatioConfig['focusArea'];
                 }
             }
         }
