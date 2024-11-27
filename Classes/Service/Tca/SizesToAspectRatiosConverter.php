@@ -21,9 +21,9 @@ class SizesToAspectRatiosConverter
                     $sizeConfig['focusArea'] = $nestedConfig['focusArea'];
                     unset($nestedConfig['focusArea']);
                 }
-                if (isset($nestedConfig['coverArea'])) {
-                    $sizeConfig['coverArea'] = $nestedConfig['coverArea'];
-                    unset($nestedConfig['coverArea']);
+                if (isset($nestedConfig['coverAreas'])) {
+                    $sizeConfig['coverAreas'] = $nestedConfig['coverAreas'];
+                    unset($nestedConfig['coverAreas']);
                 }
                 $sizeConfig['allowedRatios'][$ratioIdentifier] = $nestedConfig;
             }
