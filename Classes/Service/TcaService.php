@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Smichaelsen\MelonImages\Service;
 
+use Psr\Log\LoggerInterface;
 use Smichaelsen\MelonImages\Service\Tca\SizesToAspectRatiosConverter;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 
@@ -11,6 +12,7 @@ class TcaService
 {
     public function __construct(
         private readonly ConfigurationLoader $configurationLoader,
+        private readonly LoggerInterface $logger,
         private readonly SizesToAspectRatiosConverter $sizesToAspectRatiosConverter,
     ) {}
 
@@ -26,6 +28,11 @@ class TcaService
             }
             foreach ($tableConfiguration as $type => $fields) {
                 foreach ($fields as $fieldName => $fieldConfig) {
+                    if (!isset($tca[$tableName]['columns'][$fieldName])) {
+                        $this->logger->warning('Field ' . $fieldName . ' does not exist in TCA of table ' . $tableName . '. Skipping cropping configuration.');
+                        continue;
+                    }
+
                     $variantIdPrefixParts = [$tableName, $type, $fieldName];
                     $tca[$tableName] = $this->writeFieldConfigToTCA($tca[$tableName], (string)$type, $fieldName, $fieldConfig, $variantIdPrefixParts);
                 }
