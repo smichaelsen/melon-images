@@ -22,7 +22,7 @@ class TcaService
         if (empty($configuration)) {
             return $tca;
         }
-        foreach ($configuration['croppingConfiguration'] as $tableName => $tableConfiguration) {
+        foreach (($configuration['croppingConfiguration'] ?? []) as $tableName => $tableConfiguration) {
             if (empty($tca[$tableName])) {
                 continue;
             }
