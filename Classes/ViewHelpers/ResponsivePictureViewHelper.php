@@ -28,7 +28,7 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         parent::__construct();
     }
 
-    public function initializeArguments()
+    public function initializeArguments(): void
     {
         parent::initializeArguments();
         $this->registerUniversalTagAttributes();
