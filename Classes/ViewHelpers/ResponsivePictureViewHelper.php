@@ -8,6 +8,7 @@ use Smichaelsen\MelonImages\Domain\Dto\Source;
 use Smichaelsen\MelonImages\Service\ImageDataProvider;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\FileReference;
+use TYPO3\CMS\Core\Resource\FileType;
 use TYPO3\CMS\Core\Resource\ProcessedFile;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -128,7 +129,7 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
     protected function getImageUri(FileReference $fileReference): string
     {
         $imageSource = $this->imageService->getImageUri($fileReference);
-        if ($fileReference->getType() !== File::FILETYPE_APPLICATION) {
+        if ($fileReference->getType() !== FileType::APPLICATION->value) {
             return $imageSource;
         }
         $image = $this->imageService->getImage($imageSource, $fileReference, true);
