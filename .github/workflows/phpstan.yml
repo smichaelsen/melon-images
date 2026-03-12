@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: composer update --prefer-dist --no-interaction --no-progress
 
-      - name: Run PHPStan level 2
+      - name: Run PHPStan level 4
         run: composer phpstan
 
   phpstan-lowest:
@@ -41,5 +41,5 @@ jobs:
       - name: Install lowest dependencies
         run: composer update --prefer-lowest --prefer-dist --no-interaction --no-progress
 
-      - name: Run PHPStan level 2
+      - name: Run PHPStan level 4
         run: composer phpstan
