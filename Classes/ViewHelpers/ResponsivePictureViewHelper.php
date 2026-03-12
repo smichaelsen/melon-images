@@ -111,7 +111,7 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         return $this->tag->render();
     }
 
-    protected function renderImageTag(string $src, string $alternative = '', string $title = null, array $additionalAttributes = [], bool $absolute = false): string
+    protected function renderImageTag(string $src, string $alternative = '', ?string $title = null, array $additionalAttributes = [], bool $absolute = false): string
     {
         if ($absolute) {
             $src = GeneralUtility::locationHeaderUrl($src);

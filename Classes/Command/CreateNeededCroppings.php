@@ -87,7 +87,7 @@ class CreateNeededCroppings extends Command
         }
     }
 
-    protected function createCroppingForVariants(array $tcaPath, array $variants, string $variantIdPrefix, array $localUids = null): void
+    protected function createCroppingForVariants(array $tcaPath, array $variants, string $variantIdPrefix, ?array $localUids = null): void
     {
         $localTableName = array_shift($tcaPath);
         $type = array_shift($tcaPath);
@@ -175,7 +175,7 @@ class CreateNeededCroppings extends Command
         return null;
     }
 
-    protected function queryForeignUids(string $localTableName, string $foreignTableName, array $fieldConfig, string $localType, array $localUids = null): array
+    protected function queryForeignUids(string $localTableName, string $foreignTableName, array $fieldConfig, string $localType, ?array $localUids = null): array
     {
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($foreignTableName);
         if ($fieldConfig['type'] === 'inline' && ($fieldConfig['MM'] ?? false)) {
