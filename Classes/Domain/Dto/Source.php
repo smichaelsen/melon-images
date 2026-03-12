@@ -88,7 +88,7 @@ class Source implements \JsonSerializable
         if ($width !== null) {
             $return['width'] = $width;
         }
-        if ($this->type === null && $this->sets[0] instanceof Set) {
+        if ($this->type === null && isset($this->sets[0])) {
             $n = strrpos($this->sets[0]->getImageUri(), '.');
             $fileExtension = ($n === false) ? '' : substr($this->sets[0]->getImageUri(), $n + 1);
             $return['type'] = $this->getTypeFromExtension($fileExtension);

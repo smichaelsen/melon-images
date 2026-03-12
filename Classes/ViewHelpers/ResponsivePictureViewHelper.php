@@ -57,8 +57,6 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         $useCroppingFrom = $this->arguments['useCroppingFrom'];
         if (is_array($useCroppingFrom)) {
             $useCroppingFrom = $this->resourceFactory->getFileReferenceObject($useCroppingFrom['uid']);
-        } elseif (is_array($useCroppingFrom)) {
-            $fileReference = $this->resourceFactory->getFileReferenceObject((int)$useCroppingFrom['uid']);
         } elseif ($useCroppingFrom instanceof ExtbaseFileReferenceModel) {
             $useCroppingFrom = $useCroppingFrom->getOriginalResource();
         }
@@ -111,7 +109,7 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
         return $this->tag->render();
     }
 
-    protected function renderImageTag(string $src, string $alternative = '', string $title = null, array $additionalAttributes = [], bool $absolute = false): string
+    protected function renderImageTag(string $src, string $alternative = '', ?string $title = null, array $additionalAttributes = [], bool $absolute = false): string
     {
         if ($absolute) {
             $src = GeneralUtility::locationHeaderUrl($src);
