@@ -31,7 +31,6 @@ class ResponsivePictureViewHelper extends AbstractTagBasedViewHelper
     public function initializeArguments(): void
     {
         parent::initializeArguments();
-        $this->registerUniversalTagAttributes();
         $this->registerArgument('fileReference', 'mixed', 'File reference to render (can be a core FileReference, an extbase FileReference, a sys_file_reference record array or the uid of a file reference)', true);
         $this->registerArgument('variant', 'string', 'Name of the image variant to use', true);
         $this->registerArgument('fallbackImageSize', 'string', 'Specify the size config to be used for the fallback image. Default is the last config.', false);
