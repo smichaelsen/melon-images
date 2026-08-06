@@ -62,6 +62,12 @@ jobs:
       - name: Install tailor
         run: composer global require typo3/tailor --prefer-dist --no-progress
 
+      - name: Set version in ext_emconf.php
+        env:
+          VERSION: ${{ steps.get-version.outputs.version }}
+        run: |
+          "$(composer global config bin-dir --absolute)/tailor" set-version --no-docs=1 "$VERSION"
+
       - name: Publish to TER
         env:
           COMMENT: ${{ steps.get-comment.outputs.comment }}
