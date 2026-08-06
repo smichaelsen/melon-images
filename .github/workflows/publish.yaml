@@ -34,6 +34,10 @@ jobs:
         env:
           VERSION: ${{ steps.get-version.outputs.version }}
         run: |
+          # actions/checkout replaces refs/tags/<tag> with the commit the tag
+          # points to, so the tag object itself has to be fetched again.
+          git fetch --force origin "refs/tags/$VERSION:refs/tags/$VERSION"
+
           comment=''
 
           # Only annotated tags carry a message of their own. For a lightweight
