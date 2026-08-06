@@ -1,48 +1,61 @@
-# Taken from: https://github.com/o-ba/tailor_ext/blob/main/.github/workflows/publish.yml
 name: publish
 
 on:
   push:
     tags:
-      - "**"
+      - '[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   publish:
     name: Publish new version to TER
-    if: startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       TYPO3_API_TOKEN: ${{ secrets.TYPO3_API_TOKEN }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Check tag
-        run: |
-          if ! [[ ${{ github.ref }} =~ ^refs/tags/[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$ ]]; then
-            exit 1
-          fi
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Get version
         id: get-version
-        run: echo ::set-output name=version::${GITHUB_REF/refs\/tags\//}
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          if ! [[ "$TAG" =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+            echo "::error::Tag $TAG is not a version number."
+            exit 1
+          fi
+          echo "version=$TAG" >> "$GITHUB_OUTPUT"
 
       - name: Get comment
         id: get-comment
+        env:
+          VERSION: ${{ steps.get-version.outputs.version }}
         run: |
-          readonly local comment=$(git tag -n10 -l ${{ steps.get-version.outputs.version }} | sed "s/^[0-9.]*[ ]*//g")
+          comment=''
+
+          # Only annotated tags carry a message of their own. For a lightweight
+          # tag %(contents) would return the commit message instead.
+          if [[ "$(git cat-file -t "$VERSION")" == 'tag' ]]; then
+            comment=$(git tag -l "$VERSION" --format '%(contents)')
+          fi
 
           if [[ -z "${comment// }" ]]; then
-            echo ::set-output name=comment::Released version ${{ steps.get-version.outputs.version }} of tailor_ext
-          else
-            echo ::set-output name=comment::$comment
+            comment="Released version $VERSION"
           fi
+
+          {
+            echo 'comment<<TAG_COMMENT_EOF'
+            echo "$comment"
+            echo 'TAG_COMMENT_EOF'
+          } >> "$GITHUB_OUTPUT"
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 7.4
+          php-version: '8.3'
           extensions: intl, mbstring, json, zip, curl
           tools: composer:v2
 
@@ -50,4 +63,8 @@ jobs:
         run: composer global require typo3/tailor --prefer-dist --no-progress
 
       - name: Publish to TER
-        run: php ~/.composer/vendor/bin/tailor ter:publish --comment "${{ steps.get-comment.outputs.comment }}" ${{ steps.get-version.outputs.version }}
+        env:
+          COMMENT: ${{ steps.get-comment.outputs.comment }}
+          VERSION: ${{ steps.get-version.outputs.version }}
+        run: |
+          "$(composer global config bin-dir --absolute)/tailor" ter:publish --comment "$COMMENT" "$VERSION"
